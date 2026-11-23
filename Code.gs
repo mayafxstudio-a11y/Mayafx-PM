@@ -1,25 +1,28 @@
 /**
  * Mayafx PM — Google Apps Script backend
- * Stores Projects + Tasks in this Google Sheet, reads jobs from the
- * Print Cost calculator, and sends reminders (email + optional phone push).
+ * Stores Projects + Tasks in this Google Sheet, puts dated tasks on your
+ * Google Calendar, reads jobs from the Print Cost calculator, and sends
+ * reminders (email + optional phone push).
  *
- * 1) Fill in the 4 settings below.
+ * 1) Set KEY below (the calculator link is filled in by the app automatically).
  * 2) Run setupTriggers() once (allow the permissions).
  * 3) Deploy > New deployment > Web app (Execute as: Me, Who has access: Anyone).
  */
 
 // ---------- SETTINGS ----------
 const KEY        = 'change-this-secret';   // any password; type the same one in the app
-const CALC_URL   = '';                     // your Print Cost calculator's web app URL (…/exec)
-const CALC_KEY   = '';                     // the key you use in the Print Cost calculator
+const CALC_URL   = '';                     // optional — the app sends this automatically
+const CALC_KEY   = '';                     // optional — the app sends this automatically
+const CALENDAR_SYNC = true;                // put tasks with a date / reminder on Google Calendar
+const CALENDAR_ID   = '';                  // '' = your main calendar
 const NTFY_TOPIC = '';                     // optional: ntfy.sh topic for phone push, e.g. 'mayafx-sai-8392'
 const DIGEST_HOURS = [9, 14, 20];          // daily summary times (24h, sheet's time zone)
 // ------------------------------
 
 const PROJECT_COLS = ['id', 'name', 'branch', 'client', 'status', 'priority', 'startDate', 'dueDate',
-  'budget', 'notes', 'deleted', 'createdAt', 'updatedAt'];
+  'budget', 'notes', 'deleted', 'createdAt', 'updatedAt', 'calEventId'];
 const TASK_COLS = ['id', 'projectId', 'title', 'status', 'priority', 'dueDate', 'remindAt', 'reminded',
-  'notes', 'doneAt', 'deleted', 'createdAt', 'updatedAt'];
+  'notes', 'doneAt', 'deleted', 'createdAt', 'updatedAt', 'calEventId'];
 
 function doGet() {
   return json_({ ok: true, app: 'Mayafx PM', hint: 'Use POST from the app.' });
@@ -42,6 +45,9 @@ function doPost(e) {
           });
         case 'upsertProject': upsert_('Projects', PROJECT_COLS, body.record); return json_({ ok: true });
         case 'upsertTask':    upsert_('Tasks', TASK_COLS, body.record);       return json_({ ok: true });
+        case 'setCalc':
+          PropertiesService.getScriptProperties().setProperties({ calcUrl: body.calcUrl || '', calcKey: body.calcKey || '' });
+          return json_({ ok: true });
         case 'testReminder':  notify_('Mayafx PM test', 'Reminders are working ✔'); return json_({ ok: true });
         default: return json_({ ok: false, error: 'Unknown action' });
       }
@@ -55,7 +61,8 @@ function doPost(e) {
 function sheet_(name, cols) {
   const ss = SpreadsheetApp.getActive();
   let sh = ss.getSheetByName(name);
-  if (!sh) { sh = ss.insertSheet(name); sh.appendRow(cols); sh.setFrozenRows(1); }
+  if (!sh) sh = ss.insertSheet(name);
+  if (sh.getLastRow() === 0) { sh.appendRow(cols); sh.setFrozenRows(1); }
   const head = sh.getRange(1, 1, 1, sh.getLastColumn() || 1).getValues()[0];
   cols.forEach(c => { if (head.indexOf(c) < 0) { sh.getRange(1, head.length + 1).setValue(c); head.push(c); } });
   return sh;
@@ -99,17 +106,57 @@ function upsert_(name, cols, rec) {
     const rA = head.indexOf('remindAt'), rd = head.indexOf('reminded');
     if (old[rA] === String(rec.remindAt || '') && truthy_(old[rd])) row[rd] = true;
   }
-  if (i >= 0) sh.getRange(i + 2, 1, 1, row.length).setValues([row]);
-  else sh.appendRow(row);
+  const cI = head.indexOf('calEventId');
+  if (i >= 0 && cI >= 0 && !rec.calEventId) row[cI] = sh.getRange(i + 2, cI + 1).getValue();
+  let r;
+  if (i >= 0) { r = i + 2; sh.getRange(r, 1, 1, row.length).setValues([row]); }
+  else { sh.appendRow(row); r = sh.getLastRow(); }
+  if (CALENDAR_SYNC && cI >= 0) {
+    try {
+      const id = syncEvent_(name, rec, row[cI]);
+      if (id !== row[cI]) sh.getRange(r, cI + 1).setValue(id);
+    } catch (e) { console.warn('Calendar: ' + e.message); }
+  }
+}
+
+// ---------- Google Calendar ----------
+function cal_() { return CALENDAR_ID ? CalendarApp.getCalendarById(CALENDAR_ID) : CalendarApp.getDefaultCalendar(); }
+
+// Creates / replaces / removes the calendar event for a task or project. Returns the event id ('' if none).
+function syncEvent_(kind, rec, oldId) {
+  const cal = cal_(), tz = Session.getScriptTimeZone();
+  if (oldId) { try { const ev = cal.getEventById(oldId); if (ev) ev.deleteEvent(); } catch (e) {} }
+  if (truthy_(rec.deleted)) return '';
+  const day = s => Utilities.parseDate(String(s).slice(0, 10), tz, 'yyyy-MM-dd');
+  let ev = null;
+  if (kind === 'Tasks') {
+    if (rec.status === 'Done') return '';
+    const desc = (rec.notes || '') + '\n\nFrom Mayafx PM';
+    if (rec.remindAt) {
+      const start = Utilities.parseDate(String(rec.remindAt).slice(0, 16), tz, "yyyy-MM-dd'T'HH:mm");
+      ev = cal.createEvent('✅ ' + rec.title, start, new Date(start.getTime() + 30 * 60000), { description: desc });
+      ev.removeAllReminders(); ev.addPopupReminder(0);
+    } else if (rec.dueDate) {
+      ev = cal.createAllDayEvent('✅ ' + rec.title, day(rec.dueDate), { description: desc });
+    }
+  } else {
+    if (rec.status === 'Done' || !rec.dueDate) return '';
+    ev = cal.createAllDayEvent('🎯 Deadline: ' + rec.name, day(rec.dueDate),
+      { description: [rec.client, rec.branch, rec.notes].filter(String).join(' · ') + '\n\nFrom Mayafx PM' });
+  }
+  if (ev) ev.setColor(kind === 'Tasks' ? CalendarApp.EventColor.ORANGE : CalendarApp.EventColor.RED);
+  return ev ? ev.getId() : '';
 }
 
 // ---------- Print Cost calculator ----------
 function fetchCalcJobs_() {
-  if (!CALC_URL) return { ok: false, error: 'Calculator not linked (set CALC_URL in Code.gs)', jobs: [] };
+  const P = PropertiesService.getScriptProperties();
+  const url = CALC_URL || P.getProperty('calcUrl'), key = CALC_KEY || P.getProperty('calcKey') || '';
+  if (!url) return { ok: false, error: 'Calculator not linked yet', jobs: [] };
   try {
-    const res = UrlFetchApp.fetch(CALC_URL, {
+    const res = UrlFetchApp.fetch(url, {
       method: 'post', contentType: 'text/plain;charset=utf-8',
-      payload: JSON.stringify({ action: 'getAll', key: CALC_KEY }),
+      payload: JSON.stringify({ action: 'getAll', key: key }),
       followRedirects: true, muteHttpExceptions: true
     });
     const d = JSON.parse(res.getContentText());
@@ -131,6 +178,7 @@ function setupTriggers() {
   });
   ScriptApp.newTrigger('checkReminders').timeBased().everyHours(1).create();
   sheet_('Projects', PROJECT_COLS); sheet_('Tasks', TASK_COLS);
+  if (CALENDAR_SYNC) cal_().getName();   // asks for Calendar permission now
   notify_('Mayafx PM is set up', 'You will get task reminders and a summary at ' + DIGEST_HOURS.join(', ') + " o'clock.");
 }
 

@@ -3,21 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f6f3ee">
+<meta name="theme-color" content="#fcfbf9">
 <title>Mayafx PM</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='230 280 540 440'%3E%3Crect x='230' y='280' width='540' height='440' rx='90' fill='%231a1a1a'/%3E%3Cmask id='m'%3E%3Crect width='1000' height='1000' fill='%23fff'/%3E%3Ccircle cx='541' cy='500' r='54'/%3E%3C/mask%3E%3Cg mask='url(%23m)' fill='%23fff'%3E%3Cpolygon points='250,608 375,392 421,471 467,392 593,608 455,608 421,548 386,608'/%3E%3Cpolygon points='500,392 750,392 625,608'/%3E%3C/g%3E%3C/svg%3E">
 <style>
 :root{
-  --bg:#f6f3ee; --card:#fff; --ink:#1d1a17; --muted:#6f6760; --line:#e6e0d8;
-  --accent:#e2562b; --accent-ink:#fff; --good:#1f8a4c; --bad:#c23b2b; --warn:#c98a12; --chip:#efe9e1; --radius:14px;
+  --bg:#fcfbf9; --card:#fff; --ink:#26221f; --muted:#857d76; --line:#efebe6;
+  --accent:#ec6a3f; --accent-ink:#fff; --good:#2a9a5c; --bad:#d4483a; --warn:#c98a12; --chip:#f5f2ee; --radius:16px;
+  --shadow:0 1px 2px rgba(60,40,20,.04),0 4px 14px rgba(60,40,20,.05);
 }
-@media (prefers-color-scheme: dark){
-  :root{ --bg:#14110f; --card:#1f1b18; --ink:#f2ede7; --muted:#a39a91; --line:#332d28;
-    --accent:#ff6a3d; --accent-ink:#14110f; --good:#4cc47f; --bad:#ff6b5a; --warn:#f0b43c; --chip:#2a2521; }
-}
+:root[data-theme=dark]{ --bg:#14110f; --card:#1f1b18; --ink:#f2ede7; --muted:#a39a91; --line:#332d28;
+  --accent:#ff6a3d; --accent-ink:#14110f; --good:#4cc47f; --bad:#ff6b5a; --warn:#f0b43c; --chip:#2a2521; --shadow:none; }
 *{box-sizing:border-box}
 html,body{margin:0;color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
-body{background:radial-gradient(1200px 500px at 100% -10%,rgba(226,86,43,.10),transparent 60%),var(--bg);background-attachment:fixed;min-height:100vh}
+body{background:radial-gradient(900px 420px at 100% -10%,rgba(236,106,63,.07),transparent 60%),var(--bg);background-attachment:fixed;min-height:100vh}
+.card,.list,.proj,.stat{box-shadow:var(--shadow);border-color:var(--line)}
+input[type=date],input[type=datetime-local]{cursor:pointer}
 header{position:sticky;top:0;z-index:5;padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;
   border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 header h1{display:flex;align-items:center;gap:9px;font-size:19px;margin:0;letter-spacing:-.01em}
@@ -176,18 +177,26 @@ nav .badge{position:absolute;top:5px;left:calc(50% + 6px);background:var(--bad);
     <label>Web app URL</label><input id="cUrl" placeholder="https://script.google.com/macros/s/…/exec">
     <label>Key</label><input id="cKey" placeholder="Same as KEY in Code.gs">
     <div class="btns"><button class="btn primary" id="cSave">Save &amp; sync</button><button class="btn" id="cTest">Test reminder</button></div>
-    <p class="note">Projects and tasks are stored in your Google Sheet. Calculator jobs come in through the same link.</p>
+    <p class="note">Projects and tasks are saved in your Google Sheet, and tasks with dates go on your Google Calendar.</p>
   </div>
   <div class="card">
     <h2 class="sec" style="margin-top:0">Print Cost calculator</h2>
+    <p class="note" style="margin-top:0" id="calcAuto"></p>
+    <label>Calculator web app URL</label><input id="cCalcUrl" placeholder="https://script.google.com/macros/s/…/exec">
+    <label>Calculator key</label><input id="cCalcKey" placeholder="Key used in the calculator">
     <label>Calculator app link</label><input id="cCalcApp" placeholder="https://…github.io/mayafx-print-cost/">
     <label>Show calculator jobs from the last</label>
     <select id="cCalcDays"><option value="30">30 days</option><option value="60">60 days</option><option value="120">120 days</option><option value="365">1 year</option><option value="0">All time</option></select>
+    <div class="btns"><button class="btn primary" id="cCalcSave">Save &amp; load jobs</button><a class="btn" id="cCalcOpen" target="_blank" rel="noopener">Open calculator ↗</a></div>
     <p class="note" id="calcStatus"></p>
   </div>
   <div class="card">
+    <h2 class="sec" style="margin-top:0">Appearance</h2>
+    <div class="seg" id="themeSeg" style="grid-template-columns:1fr 1fr;margin:0"><button data-th="light">Light</button><button data-th="dark">Dark</button></div>
+  </div>
+  <div class="card">
     <h2 class="sec" style="margin-top:0">Reminders</h2>
-    <p class="note" style="margin-top:0">Your Sheet emails you (and pushes to your phone if ntfy is set) when a task's reminder time comes, plus a summary at 9 AM, 2 PM and 8 PM. While this app is open it also shows notifications here.</p>
+    <p class="note" style="margin-top:0">Tasks with a date or reminder are added to your Google Calendar automatically (with a pop-up at the reminder time). Your Sheet also emails you a summary at 9 AM, 2 PM and 8 PM. While this app is open it shows notifications here too.</p>
     <div class="btns"><button class="btn" id="notifBtn">Allow notifications</button><button class="btn" id="exportBtn">Backup (JSON)</button></div>
   </div>
 </section>
@@ -245,7 +254,15 @@ const fmtRemind = s => { if (!s) return ''; const d = new Date(s); return d.toLo
 function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2400); }
 
 // ---------- state ----------
-let cfg = Object.assign({ url: '', key: '', calcApp: 'https://mayafxstudio-a11y.github.io/mayafx-print-cost/', calcDays: '60' }, load(LS.cfg, {}));
+let cfg = Object.assign({ url: '', key: '', calcUrl: '', calcKey: '', calcApp: 'https://mayafxstudio-a11y.github.io/mayafx-print-cost/', calcDays: '60', theme: 'light' }, load(LS.cfg, {}));
+// The Print Cost calculator lives on the same site, so its saved connection can be reused automatically.
+const calcLocal = () => load('mpc_cfg', null);
+function autoCalc() {
+  const c = calcLocal();
+  if (c && c.url && !cfg.calcUrl) { cfg.calcUrl = c.url; cfg.calcKey = c.key || ''; cfg.calcAuto = true; store(LS.cfg, cfg); }
+}
+autoCalc();
+document.documentElement.dataset.theme = cfg.theme;
 let projects = load(LS.projects, []);
 let tasks = load(LS.tasks, []);
 let calc = load(LS.calc, { ok: false, error: '', jobs: [] });
@@ -280,6 +297,42 @@ function autoTasks() {
       title: `Collect ${money(j.sellingPrice)} — ${j.client || nm}`, status: 'To do', priority: 'High', dueDate: '' });
   });
   return out;
+}
+// keep only what the PM app needs from each calculator job
+const CALC_FIELDS = ['id', 'srNo', 'date', 'project', 'client', 'jobStatus', 'payment', 'sellingPrice', 'grams', 'printHrs', 'notes', 'deleted', 'updatedAt'];
+function slimJob(j) {
+  const o = {}; CALC_FIELDS.forEach(k => o[k] = j[k] == null ? '' : j[k]);
+  let q = 1; try { q = num(JSON.parse(j.settingsJson || '{}')._qty) || 1; } catch (e) {}
+  o.qty = q; o.date = s10(o.date); o.deleted = bool(o.deleted);
+  return o;
+}
+let calcBusy = false;
+async function pullCalc(quiet) {
+  if (calcBusy) return; calcBusy = true;
+  try {
+    if (cfg.calcUrl) {
+      const res = await fetch(cfg.calcUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'getAll', key: cfg.calcKey }) });
+      const d = await res.json();
+      if (!d.ok) throw new Error(d.error || 'Calculator refused');
+      calc = { ok: true, src: 'live', at: new Date().toISOString(), jobs: (d.jobs || []).map(slimJob) };
+    } else {
+      const cached = load('mpc_jobs', null);   // calculator's own offline copy on this device
+      if (!cached) throw new Error('Add the calculator URL and key in Settings');
+      calc = { ok: true, src: 'device', at: new Date().toISOString(), jobs: cached.map(slimJob) };
+    }
+  } catch (e) {
+    const cached = load('mpc_jobs', null);
+    calc = cached ? { ok: true, src: 'device', error: e.message, jobs: cached.map(slimJob) }
+                  : { ok: false, error: e.message, jobs: (calc.jobs || []) };
+    if (!quiet) toast('Calculator: ' + e.message);
+  } finally {
+    calcBusy = false; store(LS.calc, calc); renderAll();
+  }
+}
+async function sendCalcToSheet() {   // lets the Sheet include print jobs in your reminder emails
+  if (!cfg.url || !cfg.calcUrl || cfg.calcSent === cfg.calcUrl + '|' + cfg.calcKey) return;
+  try { await api({ action: 'setCalc', calcUrl: cfg.calcUrl, calcKey: cfg.calcKey }); cfg.calcSent = cfg.calcUrl + '|' + cfg.calcKey; store(LS.cfg, cfg); } catch (e) {}
 }
 const allProjects = () => projects.filter(p => !bool(p.deleted)).concat(calcProjects());
 const allTasks = () => tasks.filter(t => !bool(t.deleted)).concat(autoTasks());
@@ -325,8 +378,9 @@ async function pull(quiet) {
     const d = await api({ action: 'getAll' });
     projects = (d.projects || []).map(normProject);
     tasks = (d.tasks || []).map(normTask);
-    calc = d.calc || { ok: false, error: 'No calculator data', jobs: [] };
-    store(LS.projects, projects); store(LS.tasks, tasks); store(LS.calc, calc);
+    if (!cfg.calcUrl && d.calc && d.calc.ok) { calc = Object.assign({ src: 'sheet' }, d.calc); store(LS.calc, calc); }
+    store(LS.projects, projects); store(LS.tasks, tasks);
+    sendCalcToSheet();
     renderAll(); refreshSyncLabel();
   } catch (e) {
     setSync('err', 'Sync failed');
@@ -403,8 +457,8 @@ function renderToday() {
   const badge = overdue.length + dueToday.length;
   $('todayBadge').hidden = !badge; $('todayBadge').textContent = badge;
   $('connectBanner').hidden = !!cfg.url;
-  $('calcBanner').hidden = !cfg.url || calc.ok;
-  $('calcMsg').textContent = 'Calculator: ' + (calc.error || 'not linked yet');
+  $('calcBanner').hidden = calc.ok;
+  $('calcMsg').textContent = 'Print calculator not linked: ' + (calc.error || 'add its URL and key');
   $('notifBanner').hidden = !('Notification' in window) || Notification.permission !== 'default' || !open.some(x => x.remindAt);
 }
 
@@ -455,8 +509,12 @@ function renderTasks() {
 // ---------- SETTINGS ----------
 function renderSettings() {
   $('cUrl').value = cfg.url; $('cKey').value = cfg.key; $('cCalcApp').value = cfg.calcApp; $('cCalcDays').value = cfg.calcDays;
-  $('calcStatus').textContent = !cfg.url ? 'Connect the Sheet first — calculator jobs come through it.'
-    : calc.ok ? `Linked ✔ — ${(calc.jobs || []).length} jobs found, ${calcJobs().length} shown.` : 'Not linked: ' + (calc.error || 'unknown');
+  $('cCalcUrl').value = cfg.calcUrl; $('cCalcKey').value = cfg.calcKey; $('cCalcOpen').href = cfg.calcApp || '#';
+  $('calcAuto').textContent = cfg.calcAuto ? 'Found your calculator on this phone and linked it automatically ✔' : 'Paste the same URL and key that are in the calculator\'s Settings tab.';
+  $('calcStatus').textContent = calc.ok
+    ? `Linked ✔ ${calc.src === 'device' ? '(using the copy saved on this device)' : ''} — ${(calc.jobs || []).filter(j => !j.deleted).length} jobs, ${calcJobs().length} shown.${calc.error ? ' Live link failed: ' + calc.error : ''}`
+    : 'Not linked: ' + (calc.error || 'add URL and key');
+  document.querySelectorAll('#themeSeg button').forEach(b => b.classList.toggle('on', b.dataset.th === cfg.theme));
   $('notifBtn').textContent = !('Notification' in window) ? 'Notifications not supported' : Notification.permission === 'granted' ? 'Notifications on ✔' : 'Allow notifications';
 }
 
@@ -477,6 +535,7 @@ function projectDetail(id) {
   const info = j ? `<div class="card"><table class="kv">
       <tr><td>Job</td><td>#${esc(j.srNo)} · ${esc(s10(j.date))}</td></tr>
       ${j.client ? `<tr><td>Client</td><td>${esc(j.client)}</td></tr>` : ''}
+      ${num(j.qty) > 1 ? `<tr><td>Quantity</td><td>${num(j.qty)} pcs</td></tr>` : ''}
       <tr><td>Filament · Print time</td><td>${num(j.grams).toFixed(0)} g · ${num(j.printHrs).toFixed(1)} h</td></tr>
       <tr><td>Price</td><td><b>${money(j.sellingPrice)}</b></td></tr>
       <tr><td>Status · Payment</td><td>${esc(j.jobStatus || 'Not started')} · ${esc(j.payment || 'Unpaid')}</td></tr></table>
@@ -539,7 +598,7 @@ function taskForm(id, projectId) {
       <div><label>Priority</label><select id="fPrio">${opts(PRIOS, t.priority)}</select></div></div>
     <label>Due date</label><input type="date" id="fDue" value="${esc(t.dueDate || '')}">
     <div class="presets"><button class="btn sm" data-due="0">Today</button><button class="btn sm" data-due="1">Tomorrow</button><button class="btn sm" data-due="7">Next week</button><button class="btn sm" data-due="">Clear</button></div>
-    <label>Remind me at</label><input type="datetime-local" id="fRemind" value="${esc(t.remindAt || '')}">
+    <label>Remind me at <span style="font-size:12px">· added to Google Calendar</span></label><input type="datetime-local" id="fRemind" value="${esc(t.remindAt || '')}">
     <div class="presets"><button class="btn sm" data-rem="1h">In 1 hour</button><button class="btn sm" data-rem="20">Tonight 8 PM</button><button class="btn sm" data-rem="t9">Tomorrow 9 AM</button><button class="btn sm" data-rem="">None</button></div>
     <label>Notes</label><textarea id="fNotes">${esc(t.notes || '')}</textarea>
     <div class="btns">${id ? '<button class="btn danger" id="fDel">Delete</button>' : '<button class="btn" data-close>Cancel</button>'}<button class="btn primary" id="fSave">Save</button></div>`);
@@ -611,6 +670,19 @@ $('cSave').onclick = () => {
   store(LS.queue, queue);
   pull().then(() => toast(calc.ok ? 'Connected ✔ Calculator linked' : 'Connected ✔'));
 };
+$('cCalcSave').onclick = () => {
+  cfg.calcUrl = $('cCalcUrl').value.trim(); cfg.calcKey = $('cCalcKey').value.trim(); cfg.calcApp = $('cCalcApp').value.trim();
+  cfg.calcDays = $('cCalcDays').value; cfg.calcAuto = false; store(LS.cfg, cfg);
+  pullCalc().then(() => { if (calc.ok) toast(`Loaded ${calcJobs().length} print jobs ✔`); sendCalcToSheet(); });
+};
+document.querySelectorAll('#themeSeg button').forEach(b => b.onclick = () => {
+  cfg.theme = b.dataset.th; store(LS.cfg, cfg); document.documentElement.dataset.theme = cfg.theme; renderSettings();
+});
+// open the calendar as soon as a date field is tapped
+document.addEventListener('click', e => {
+  const el = e.target.closest('input[type=date],input[type=datetime-local]');
+  if (el && el.showPicker) { try { el.showPicker(); } catch (err) {} }
+});
 $('cCalcDays').onchange = () => { cfg.calcDays = $('cCalcDays').value; store(LS.cfg, cfg); renderAll(); };
 $('cTest').onclick = async () => {
   if (!cfg.url) { toast('Connect the Sheet first'); return; }
@@ -644,10 +716,11 @@ function checkLocalReminders() {
 renderAll();
 refreshSyncLabel();
 pull(true);
+pullCalc(true);
 checkLocalReminders();
 setInterval(checkLocalReminders, 60 * 1000);
-setInterval(() => document.visibilityState === 'visible' && pull(true), 5 * 60 * 1000);
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { pull(true); renderToday(); } });
+setInterval(() => { if (document.visibilityState === 'visible') { pull(true); pullCalc(true); } }, 5 * 60 * 1000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { autoCalc(); pull(true); pullCalc(true); renderToday(); } });
 </script>
 </body>
 </html>
