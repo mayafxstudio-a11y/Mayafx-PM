@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3f3f5">
+<title>Mayafx HQ</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{
+  --bg:#f3f3f5; --card:#fff; --ink:#1e1d22; --muted:#6c6a74; --line:#e3e2e8;
+  --accent:#6a5a96; --accent-ink:#fff; --good:#2f8a5a; --bad:#c2453c; --warn:#a8862a; --chip:#ebeaef; --radius:16px;
+  --shadow:0 1px 2px rgba(30,25,45,.04),0 4px 14px rgba(30,25,45,.05);
+}
+:root[data-theme=dark]{ --bg:#141317; --card:#1d1c21; --ink:#ecebf0; --muted:#9e9ba8; --line:#2d2b33;
+  --accent:#a090cf; --accent-ink:#141317; --good:#5cbf8a; --bad:#e8786d; --warn:#d6b25a; --chip:#26242c; --shadow:none; }
+*{box-sizing:border-box}
+html,body{margin:0;color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+body{background:var(--bg);min-height:100vh}
+[hidden]{display:none!important}
+#top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 6px;gap:10px}
+header h1{display:flex;align-items:center;gap:9px;font-size:18px;margin:0;letter-spacing:-.01em}
+header h1 span{color:var(--accent)}
+.hlogo{width:48px;height:28px;flex:none;color:var(--bg);background:var(--ink);border-radius:8px;padding:5px 6px}
+.pill{font-size:12px;padding:5px 10px;border-radius:99px;background:var(--chip);color:var(--muted);border:0;cursor:pointer;font-weight:600;font-family:inherit}
+.pill.ok{color:var(--good)} .pill.warn{color:var(--accent)} .pill.err{color:var(--bad)}
+nav#tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 12px 10px;scrollbar-width:none}
+nav#tabs::-webkit-scrollbar{display:none}
+nav#tabs a{flex:none;padding:8px 13px;border-radius:99px;background:var(--card);color:var(--muted);text-decoration:none;border:1px solid var(--line);white-space:nowrap;font-size:14px;font-weight:600}
+nav#tabs a.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+nav#tabs .sep{flex:none;width:1px;background:var(--line);margin:4px 2px}
+main{max-width:980px;margin:0 auto;padding:14px 14px 60px;display:grid;gap:14px}
+main>*{min-width:0}
+.frame{display:block;width:100%;border:0;height:calc(100dvh - var(--toph,108px));background:var(--bg)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 10px;font-weight:650}
+h3{margin:0;font-size:16px}
+.mute{color:var(--muted)} .small{font-size:13px} .ok{color:var(--good)} .bad{color:var(--bad)} .warn{color:var(--warn)}
+button,.btn{background:var(--chip);color:var(--ink);border:0;border-radius:11px;padding:9px 13px;font:inherit;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;min-height:40px}
+button.primary,.btn.primary{background:var(--accent);color:var(--accent-ink)}
+button.danger{color:var(--bad)}
+button.sm,.btn.sm{padding:6px 11px;font-size:13px;min-height:34px}
+input,select,textarea{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 11px;font:inherit;width:100%;min-width:0;min-height:44px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+textarea{min-height:70px;resize:vertical}
+label{display:grid;gap:4px;font-size:13px;color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sp{flex:1}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:var(--shadow)}
+.kpi .v{font-size:21px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums} .kpi .s{font-size:12px;color:var(--muted)}
+.list{display:grid;gap:10px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:8px;box-shadow:var(--shadow)}
+.tag{font-size:11.5px;font-weight:650;padding:2px 9px;border-radius:99px;background:var(--chip);color:var(--muted);white-space:nowrap}
+.tag.Paid,.tag.Accepted,.tag.Done{color:var(--good);background:color-mix(in srgb,var(--good) 13%,transparent)}
+.tag.Unpaid,.tag.Overdue,.tag.Failed,.tag.Rejected{color:var(--bad);background:color-mix(in srgb,var(--bad) 13%,transparent)}
+.tag.Part,.tag.Sent,.tag.Printing{color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:7px 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:13px;font-weight:600;color:var(--muted)}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+table{width:100%;border-collapse:collapse} th,td{padding:7px 5px;border-bottom:1px solid var(--line);text-align:left} th{font-size:12px;color:var(--muted);font-weight:600} td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+.sw{display:inline-block;width:12px;height:12px;border-radius:4px;border:1px solid #0003;vertical-align:-1px}
+.printrow{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center}
+.thumb{width:48px;height:48px;border-radius:10px;background:var(--chip) center/cover no-repeat}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;z-index:20;overflow-y:auto;padding:16px}
+#modal.show{display:block}
+#modal .panel{max-width:640px;margin:20px auto;background:var(--card);border-radius:18px;padding:16px;display:grid;gap:12px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;display:none;z-index:30;max-width:90vw;text-align:center;font-size:14px}
+.itemsT input{padding:7px 8px;min-height:38px}
+.banner{font-size:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+/* printable document */
+.doc{background:#fff;color:#111;border-radius:12px;padding:28px;font-size:13px;box-shadow:var(--shadow)}
+.doc h1{margin:0;font-size:22px;letter-spacing:.3px}
+.doc .muted{color:#666}
+.doc table th{color:#444;border-bottom:2px solid #222}
+.doc table td{border-bottom:1px solid #ddd}
+.doc .tot td{border:none;padding:3px 5px}
+.doc .big{font-size:18px;font-weight:800}
+.doc .badge{display:inline-block;border:2px solid #111;padding:3px 10px;font-weight:800;letter-spacing:2px}
+.doc .dlogo{width:54px;height:32px;background:#1e1d22;color:#fff;border-radius:8px;padding:6px 7px;margin-bottom:8px}
+@media (max-width:640px){ main{padding:10px 10px 60px;gap:10px} .kpis{grid-template-columns:1fr 1fr;gap:8px} .kpi .v{font-size:18px} .doc{padding:16px} }
+@media print{
+  body{background:#fff} #top,.noprint,#toast,.frame{display:none!important}
+  main{padding:0;max-width:none} .doc{border-radius:0;padding:0;box-shadow:none}
+}
+</style>
+</head>
+<body>
+<div id="top">
+  <header>
+    <h1><svg viewBox="240 380 520 240" class="hlogo" aria-hidden="true"><defs><mask id="hm"><rect width="1000" height="1000" fill="#fff"/><circle cx="541" cy="500" r="54" fill="#000"/></mask></defs><g mask="url(#hm)" fill="currentColor"><polygon points="250,608 375,392 421,471 467,392 593,608 455,608 421,548 386,608"/><polygon points="500,392 750,392 625,608"/></g></svg>Mayafx <span>HQ</span></h1>
+    <div class="row" style="gap:6px"><button class="pill" id="installBtn" hidden>⬇ Install</button><button class="pill" id="sync">Offline</button></div>
+  </header>
+  <nav id="tabs"></nav>
+</div>
+<div id="frames"></div>
+<main id="view"><div class="empty">Loading…</div></main>
+<div id="modal"><div class="panel" id="modalPanel"></div></div>
+<div id="toast"></div>
+
+<script>
+// ============================================================ core
+const $ = s => document.querySelector(s);
+const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money = v => (v<0?"-":"") + "₹" + Math.round(Math.abs(v||0)).toLocaleString("en-IN");
+const num = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+const pad = n => String(n).padStart(2,"0");
+const today = () => { const d = new Date(); return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); };
+const addDays = (s, n) => { const d = new Date((s||today())+"T12:00:00"); d.setDate(d.getDate()+n); return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); };
+const fdate = s => { if(!s) return ""; const d = new Date(String(s).length<=10 ? s+"T12:00:00" : s); return isNaN(d) ? s : d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"2-digit"}); };
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const loadLS = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } };
+const storeLS = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+function toast(m){ const t=$("#toast"); t.textContent=m; t.style.display="block"; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display="none",2600); }
+function waLink(phone, text){ let d = String(phone||"").replace(/\D/g,""); if(d.length===10) d = "91"+d; return "https://wa.me/" + d + "?text=" + encodeURIComponent(text); }
+
+const DEFAULTS = {
+  business_name: "Mayafx Studio", tagline: "Art • Technology • Entertainment",
+  phone: "", email: "", address: "Bicholim, North Goa", upi_id: "",
+  quote_terms: "50% advance to start. Balance on delivery. Quote valid for 15 days.", invoice_due_days: 7,
+  rate_per_gram: 14, scan_fee: 600, filament_per_kg: 675, electricity_per_kwh: 8, watts: 100, wear_per_hour: 5, margin_percent: 60,
+  quick_links: []
+};
+// HQ uses the same Google Sheet connection as Mayafx PM (same website, so it is shared automatically)
+const sheetCfg = () => loadLS("mpm_cfg", {}) || {};
+const ORIGIN_APPS = {
+  pm: location.origin + "/Mayafx-PM/",
+  calc: location.origin + "/mayafx-print-cost/"
+};
+let H = Object.assign({ quotes: [], settings: {}, prints: [], devices: [], bambu: {} }, loadLS("hq_cache", {}));
+let queue = loadLS("hq_queue", []);
+const S = () => Object.assign({}, DEFAULTS, H.settings || {});
+document.documentElement.dataset.theme = (sheetCfg().theme === "dark") ? "dark" : "light";
+
+async function api(payload){
+  const c = sheetCfg();
+  if(!c.url) throw new Error("Sheet not connected");
+  const r = await fetch(c.url, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(Object.assign({}, payload, { key: c.key })) });
+  const d = await r.json();
+  if(!d.ok && d.ok !== undefined && !d.needCode) throw new Error(d.error || d.msg || "Request failed");
+  return d;
+}
+function setSync(cls, txt){ const b=$("#sync"); b.className = "pill " + cls; b.textContent = txt; }
+function syncLabel(){ if(!sheetCfg().url) return setSync("err","Not connected"); if(queue.length) return setSync("warn", queue.length+" unsynced"); setSync("ok","Synced"); }
+let flushing = false;
+async function flush(){
+  syncLabel(); if(!sheetCfg().url || flushing) return; flushing = true;
+  try { while(queue.length){ setSync("warn","Syncing…"); await api(queue[0]); queue.shift(); storeLS("hq_queue", queue); } }
+  catch(e){ console.warn(e); } finally { flushing = false; syncLabel(); }
+}
+function enqueue(op){ if(op.record) queue = queue.filter(q=>!(q.action===op.action && q.record && q.record.id===op.record.id)); queue.push(op); storeLS("hq_queue", queue); flush(); }
+async function pull(quiet){
+  if(!sheetCfg().url){ syncLabel(); return; }
+  await flush(); if(queue.length) return;
+  try { setSync("warn","Syncing…"); const d = await api({action:"getHQ"});
+    H = { quotes: d.quotes||[], settings: d.settings||{}, prints: d.prints||[], devices: d.devices||[], bambu: d.bambu||{} };
+    storeLS("hq_cache", H); syncLabel(); render();
+  } catch(e){ setSync("err","Sync failed"); if(!quiet) toast("Could not reach the Sheet: "+e.message); }
+}
+function saveQuote(q){
+  q.updatedAt = new Date().toISOString(); if(!q.createdAt) q.createdAt = q.updatedAt;
+  q.total = quoteTotal(q); q.paid = paidFor(q); q.status_label = qStatus(q);
+  const i = H.quotes.findIndex(x=>x.id===q.id); if(i>=0) H.quotes[i]=q; else H.quotes.push(q);
+  H.quotes = H.quotes.filter(x=>!x.deleted); storeLS("hq_cache", H);
+  enqueue({ action:"upsertQuote", record: Object.assign({}, q, { status: q.status_label }) });
+  return q;
+}
+function closeModal(){ $("#modal").classList.remove("show"); }
+$("#modal").addEventListener("click", e=>{ if(e.target.id==="modal") closeModal(); });
+
+// ============================================================ calculations
+const quoteTotal = q => Math.max(0, (q.items||[]).reduce((a,i)=>a+num(i.qty)*num(i.rate),0) - num(q.discount));
+const paidFor = q => (q.payments||[]).reduce((a,p)=>a+num(p.amount),0);
+const clients = () => [...new Set(H.quotes.map(q=>q.client).filter(Boolean))].sort();
+const clientPhone = c => { const j = [...H.quotes].reverse().find(x=>x.client===c && x.phone); return j ? j.phone : ""; };
+function qStatus(q){
+  if(q.type==="quote") return q.status||"Draft";
+  const tot = quoteTotal(q), paid = paidFor(q);
+  return paid>=tot-0.5 && tot>0 ? "Paid" : paid>0 ? "Part" : (q.due_date && q.due_date<today() ? "Overdue" : "Unpaid");
+}
+function printCost(p){
+  const s = S(), g = num(p.grams), h = num(p.seconds)/3600;
+  const material = g/1000*num(s.filament_per_kg), elec = h*num(s.watts)/1000*num(s.electricity_per_kwh), wear = h*num(s.wear_per_hour);
+  const total = material+elec+wear;
+  return { total, priceGram: g*num(s.rate_per_gram), priceMargin: total*(1+num(s.margin_percent)/100) };
+}
+
+// ============================================================ router + tabs
+const TABS = [["pm","📋 PM"],["calc","🧮 Print Cost"],["quotes","🧾 Quotes & Invoices"],["prints","🖨 Prints"],["settings","⚙ Settings"]];
+const FRAMES = { pm: () => ORIGIN_APPS.pm, calc: () => ORIGIN_APPS.calc };
+function render(){
+  let [tab, arg] = (location.hash.slice(1) || loadLS("hq_tab","pm")).split("/");
+  if(!["pm","calc","quotes","prints","settings","doc"].includes(tab)) tab = "pm";
+  if(tab !== "doc") storeLS("hq_tab", tab);
+  const ql = (S().quick_links||[]).filter(l=>l && l.url).map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.name||l.url)} ↗</a>`).join("");
+  $("#tabs").innerHTML = TABS.map(([k,l])=>`<a href="#${k}" class="${k===tab||(tab==="doc"&&k==="quotes")?"on":""}">${l}</a>`).join("") + (ql ? `<span class="sep"></span>${ql}` : "");
+  const on = $("#tabs a.on"); if(on) on.scrollIntoView({inline:"nearest",block:"nearest"});
+  document.documentElement.style.setProperty("--toph", $("#top").offsetHeight + "px");
+  // embedded apps stay loaded in the background so switching is instant
+  Object.keys(FRAMES).forEach(k=>{
+    let f = document.getElementById("f-"+k);
+    if(k===tab && !f){ f = document.createElement("iframe"); f.id="f-"+k; f.className="frame"; f.src = FRAMES[k](); f.title = k; $("#frames").appendChild(f); }
+    if(f) f.hidden = k!==tab;
+  });
+  const isFrame = !!FRAMES[tab];
+  $("#view").hidden = isFrame;
+  if(!isFrame) $("#view").innerHTML = ({quotes:vQuotes, prints:vPrints, settings:vSettings, doc:vDoc})[tab](arg);
+  if(tab==="settings") wireSettings();
+}
+window.addEventListener("hashchange", render);
+window.addEventListener("resize", ()=>document.documentElement.style.setProperty("--toph", $("#top").offsetHeight + "px"));
+
+// ============================================================ QUOTES / INVOICES
+let qFilter = "all";
+function connectBanner(){
+  return sheetCfg().url ? "" : `<div class="banner noprint"><span>Not connected to your Google Sheet yet, so this only saves on this device. Connect it once in <b>📋 PM → Settings</b> and HQ uses the same connection.</span><a class="btn sm" href="#pm">Open PM</a></div>`;
+}
+function vQuotes(){
+  const list = H.quotes.filter(q=>qFilter==="all"||q.type===qFilter||(qFilter==="unpaid"&&q.type==="invoice"&&qStatus(q)!=="Paid"))
+    .sort((a,b)=>(b.date||"").localeCompare(a.date||"") || (b.number||"").localeCompare(a.number||""));
+  const inv = H.quotes.filter(q=>q.type==="invoice"), m = today().slice(0,7);
+  const toCollect = inv.reduce((a,q)=>a+Math.max(0,quoteTotal(q)-paidFor(q)),0);
+  const billed = inv.filter(q=>(q.date||"").startsWith(m)).reduce((a,q)=>a+quoteTotal(q),0);
+  const openQ = H.quotes.filter(q=>q.type==="quote" && ["Draft","Sent"].includes(q.status||"Draft")).length;
+  return `${connectBanner()}
+  <section class="kpis">
+    <div class="kpi"><div class="s">Billed this month</div><div class="v">${money(billed)}</div></div>
+    <div class="kpi"><div class="s">Unpaid invoices</div><div class="v ${toCollect?"bad":"ok"}">${money(toCollect)}</div></div>
+    <div class="kpi"><div class="s">Open quotes</div><div class="v">${openQ}</div><div class="s">draft / sent</div></div>
+  </section>
+  <section class="row">
+    <div class="chips">${[["all","All"],["quote","Quotes"],["invoice","Invoices"],["unpaid","Unpaid"]].map(([k,l])=>`<span class="chip ${qFilter===k?"on":""}" onclick="qFilter='${k}';render()">${l}</span>`).join("")}</div>
+    <div class="sp"></div><button onclick="newQuote('invoice')">+ Invoice</button><button class="primary" onclick="newQuote('quote')">+ Quote</button>
+  </section>
+  <section class="list">${list.length ? list.map(q=>{
+    const tot = quoteTotal(q), st = qStatus(q);
+    return `<div class="item">
+      <div class="row"><h3>${esc(q.number)}</h3><span class="tag">${q.type==="quote"?"Quote":"Invoice"}</span><span class="tag ${st}">${st==="Part"?"Part paid":st}</span><div class="sp"></div><b>${money(tot)}</b></div>
+      <div class="row small mute"><span>👤 ${esc(q.client||"—")}</span><span>${fdate(q.date)}</span>${q.type==="invoice"&&st!=="Paid"&&paidFor(q)>0?`<span class="bad">Balance ${money(tot-paidFor(q))}</span>`:""}</div>
+      <div class="row">
+        <a class="btn sm primary" href="#doc/${q.id}">View / PDF</a>
+        <button class="sm" onclick="editQuote('${q.id}')">Edit</button>
+        ${q.type==="quote"?`<button class="sm" onclick="toInvoice('${q.id}')">→ Invoice</button>`:""}
+        ${q.type==="invoice"&&st!=="Paid"?`<button class="sm" onclick="addPayment('${q.id}')">₹ Payment</button>`:""}
+      </div></div>`}).join("") : `<div class="empty">Nothing here yet. Make a quote in under a minute with <b>+ Quote</b>.</div>`}</section>`;
+}
+function nextNumber(type){
+  const pre = (type==="quote"?"Q":"INV") + "-" + new Date().getFullYear() + "-";
+  const n = H.quotes.filter(q=>(q.number||"").startsWith(pre)).map(q=>parseInt(q.number.slice(pre.length))||0);
+  return pre + String((n.length?Math.max(...n):0)+1).padStart(3,"0");
+}
+let QE = null;
+function newQuote(type){
+  const s = S();
+  QE = {type, number: nextNumber(type), date: today(), items: [], discount: 0, notes: s.quote_terms, status:"Draft", payments:[]};
+  QE.due_date = type==="invoice" ? addDays(today(), num(s.invoice_due_days)||7) : addDays(today(), 15);
+  quoteEditor();
+}
+function editQuote(id){ QE = JSON.parse(JSON.stringify(H.quotes.find(q=>q.id===id))); quoteEditor(); }
+function quoteEditor(){
+  const q = QE, s = S();
+  $("#modalPanel").innerHTML = `
+    <div class="row"><h3>${q.id?"Edit":"New"} ${q.type==="quote"?"quote":"invoice"}</h3><div class="sp"></div><button class="sm" onclick="closeModal()">✕</button></div>
+    <div class="grid2">
+      <label>Type<select id="qType"><option value="quote" ${q.type==="quote"?"selected":""}>Quote</option><option value="invoice" ${q.type==="invoice"?"selected":""}>Invoice</option></select></label>
+      <label>Number<input id="qNum" value="${esc(q.number)}"></label>
+      <label>Client<input id="qClient" list="qcl" value="${esc(q.client||"")}"><datalist id="qcl">${clients().map(c=>`<option value="${esc(c)}">`).join("")}</datalist></label>
+      <label>Client phone (WhatsApp)<input id="qPhone" type="tel" value="${esc(q.phone||"")}"></label>
+      <label>Date<input id="qDate" type="date" value="${esc(q.date||"")}"></label>
+      <label>${q.type==="invoice"?"Payment due by":"Valid until"}<input id="qDue" type="date" value="${esc(q.due_date||"")}"></label>
+    </div>
+    <div class="scroll"><table class="itemsT"><tr><th>Item</th><th class="n" style="width:70px">Qty</th><th class="n" style="width:95px">Rate ₹</th><th class="n" style="width:85px">Amount</th><th></th></tr>
+      ${q.items.map((it,i)=>`<tr><td><input value="${esc(it.desc)}" oninput="QE.items[${i}].desc=this.value"></td>
+        <td><input type="number" step="any" value="${esc(it.qty)}" oninput="QE.items[${i}].qty=this.value;qeTot()"></td>
+        <td><input type="number" step="any" value="${esc(it.rate)}" oninput="QE.items[${i}].rate=this.value;qeTot()"></td>
+        <td class="n" id="qa${i}">${money(num(it.qty)*num(it.rate))}</td><td><button class="sm danger" onclick="qeSync();QE.items.splice(${i},1);quoteEditor()">✕</button></td></tr>`).join("") || `<tr><td colspan="5" class="mute small">No items yet. Add one below.</td></tr>`}
+    </table></div>
+    <div class="row">
+      <button class="sm" onclick="qeAdd({desc:'',qty:1,rate:0})">+ Item</button>
+      <button class="sm" onclick="qeGrams()">+ 3D print by grams</button>
+      <button class="sm" onclick="qePick()">+ From print history</button>
+      <button class="sm" onclick="qeAdd({desc:'3D scanning',qty:1,rate:${num(s.scan_fee)}})">+ Scanning ${money(s.scan_fee)}</button>
+    </div>
+    <div id="qePicker"></div>
+    <div class="grid2">
+      <label>Discount ₹<input id="qDisc" type="number" step="any" value="${esc(q.discount||0)}" oninput="qeTot()"></label>
+      ${q.type==="quote"?`<label>Quote status<select id="qStatus">${["Draft","Sent","Accepted","Rejected"].map(x=>`<option ${x===q.status?"selected":""}>${x}</option>`).join("")}</select></label>`:"<span></span>"}
+      <label style="grid-column:1/-1">Notes / terms<textarea id="qNotes">${esc(q.notes||"")}</textarea></label>
+    </div>
+    <div class="row"><div style="font-size:17px">Total: <b id="qTot">${money(quoteTotal(q))}</b></div></div>
+    <div class="row">${q.id?`<button class="danger" onclick="delQuote('${q.id}')">Delete</button>`:""}<div class="sp"></div>
+      <button onclick="closeModal()">Cancel</button><button class="primary" onclick="qeSave()">Save</button></div>`;
+  $("#modal").classList.add("show");
+  $("#qType").onchange = e=>{ qeSync(); QE.type = e.target.value; if(!QE.id) QE.number = nextNumber(QE.type); quoteEditor(); };
+  $("#qClient").onchange = e=>{ if(!$("#qPhone").value) $("#qPhone").value = clientPhone(e.target.value); };
+}
+function qeSync(){
+  const q = QE; q.type=$("#qType").value; q.number=$("#qNum").value.trim(); q.client=$("#qClient").value.trim(); q.phone=$("#qPhone").value.trim();
+  q.date=$("#qDate").value; q.due_date=$("#qDue").value; q.discount=num($("#qDisc").value); q.notes=$("#qNotes").value;
+  if($("#qStatus")) q.status=$("#qStatus").value;
+}
+function qeTot(){ QE.discount = num($("#qDisc").value); QE.items.forEach((it,i)=>{ const c=$("#qa"+i); if(c) c.textContent=money(num(it.qty)*num(it.rate)); }); $("#qTot").textContent = money(quoteTotal(QE)); }
+function qeAdd(it){ qeSync(); QE.items.push(it); quoteEditor(); }
+function qeGrams(){
+  const r = num(S().rate_per_gram), g = prompt("How many grams? (rate ₹"+r+"/g)"); if(!g) return;
+  qeAdd({desc:"3D printing (PLA)", qty:num(g), rate:r});
+}
+function qePick(){
+  const recent = [...H.prints].filter(p=>p.status==="Done").sort((a,b)=>String(b.start||"").localeCompare(String(a.start||""))).slice(0,60);
+  window._picks = recent; const r = num(S().rate_per_gram);
+  $("#qePicker").innerHTML = recent.length ? `<div class="card" style="padding:8px;max-height:260px;overflow:auto"><div class="small mute" style="margin-bottom:6px">Tap prints to add (priced at ₹${r}/g):</div>
+    ${recent.map((p,i)=>`<div class="row small" style="padding:7px 0;border-bottom:1px solid var(--line);cursor:pointer" onclick="pickPrint(${i})">
+      <span style="flex:1">${esc(p.title)}</span><span class="mute">${fdate(p.start)}</span><b>${num(p.grams).toFixed(0)} g</b></div>`).join("")}</div>`
+    : `<div class="small mute">No finished prints yet. Log in to Bambu under 🖨 Prints to load your print history.</div>`;
+}
+function pickPrint(i){ const p = window._picks[i]; qeAdd({desc:`3D print: ${p.title} (${num(p.grams).toFixed(0)} g)`, qty:1, rate:Math.round(num(p.grams)*num(S().rate_per_gram))}); }
+function qeSave(){
+  qeSync();
+  if(!QE.items.length){ toast("Add at least one item"); return; }
+  if(!QE.client){ toast("Client name is needed"); return; }
+  QE.items = QE.items.map(i=>({desc:i.desc, qty:num(i.qty), rate:num(i.rate)}));
+  if(!QE.id) QE.id = (QE.type==="quote"?"q-":"i-") + uid();
+  const saved = saveQuote(QE); closeModal(); toast("Saved "+saved.number); location.hash = "#doc/"+saved.id; render();
+}
+function delQuote(id){
+  const q = H.quotes.find(x=>x.id===id); if(!q || !confirm("Delete "+q.number+"?")) return;
+  closeModal(); saveQuote(Object.assign({}, q, {deleted:true})); location.hash="#quotes"; render(); toast("Deleted");
+}
+function toInvoice(id){
+  const q = H.quotes.find(x=>x.id===id), s = S();
+  const inv = {id:"i-"+uid(), type:"invoice", number: nextNumber("invoice"), date: today(), due_date: addDays(today(), num(s.invoice_due_days)||7),
+    client:q.client, phone:q.phone, items: JSON.parse(JSON.stringify(q.items)), discount:q.discount, notes:q.notes, quote_ref:q.number, payments:[]};
+  saveQuote(Object.assign({}, q, {status:"Accepted"}));
+  const saved = saveQuote(inv); toast("Invoice "+saved.number+" created"); location.hash = "#doc/"+saved.id;
+}
+function addPayment(id){
+  const q = H.quotes.find(x=>x.id===id), bal = Math.max(0, quoteTotal(q)-paidFor(q));
+  $("#modalPanel").innerHTML = `<div class="row"><h3>Payment received · ${esc(q.number)}</h3><div class="sp"></div><button class="sm" onclick="closeModal()">✕</button></div>
+    <div class="grid2">
+      <label>Amount ₹<input id="pAmt" type="number" step="any" value="${Math.round(bal)}"></label>
+      <label>Date<input id="pDate" type="date" value="${today()}"></label>
+      <label>Method<select id="pMeth">${["UPI","Cash","Bank transfer","Cheque","Other"].map(m=>`<option>${m}</option>`).join("")}</select></label>
+    </div>
+    <div class="row"><div class="sp"></div><button onclick="closeModal()">Cancel</button><button class="primary" id="pSave">Save payment</button></div>`;
+  $("#modal").classList.add("show");
+  $("#pSave").onclick = ()=>{ const amt = num($("#pAmt").value); if(!amt){ toast("Enter amount"); return; }
+    const nq = JSON.parse(JSON.stringify(q)); nq.payments = nq.payments||[]; nq.payments.push({amount:amt, date:$("#pDate").value, method:$("#pMeth").value});
+    closeModal(); saveQuote(nq); render(); toast("Payment of "+money(amt)+" saved"); };
+}
+function delPayment(id, i){ const q = JSON.parse(JSON.stringify(H.quotes.find(x=>x.id===id))); if(!confirm("Remove this payment?")) return; q.payments.splice(i,1); saveQuote(q); render(); toast("Removed"); }
+const LOGO_SVG = `<svg viewBox="240 380 520 240" class="dlogo"><defs><mask id="dm"><rect width="1000" height="1000" fill="#fff"/><circle cx="541" cy="500" r="54" fill="#000"/></mask></defs><g mask="url(#dm)" fill="currentColor"><polygon points="250,608 375,392 421,471 467,392 593,608 455,608 421,548 386,608"/><polygon points="500,392 750,392 625,608"/></g></svg>`;
+function vDoc(id){
+  const q = H.quotes.find(x=>x.id===id); if(!q) return `<div class="empty">Not found. <a href="#quotes">Back</a></div>`;
+  const s = S(), sub = (q.items||[]).reduce((a,i)=>a+num(i.qty)*num(i.rate),0), tot = quoteTotal(q), paid = paidFor(q), inv = q.type==="invoice";
+  const lines = (q.items||[]).map(i=>`• ${i.desc}${num(i.qty)!==1?` (${i.qty} × ${money(i.rate)})`:""}: ${money(num(i.qty)*num(i.rate))}`).join("\n");
+  const wa = `${inv?"Invoice":"Quotation"} ${q.number} from ${s.business_name}\n\n${lines}${num(q.discount)?`\nDiscount: -${money(q.discount)}`:""}\n*Total: ${money(tot)}*${inv&&paid?`\nPaid: ${money(paid)}\n*Balance: ${money(tot-paid)}*`:""}${inv&&q.due_date?`\nDue by ${fdate(q.due_date)}`:""}${s.upi_id&&inv?`\n\nPay by UPI: ${s.upi_id}`:""}${q.notes?`\n\n${q.notes}`:""}\n\nThank you! 🙏`;
+  const upiLink = s.upi_id && inv && tot-paid>0 ? `upi://pay?pa=${encodeURIComponent(s.upi_id)}&pn=${encodeURIComponent(s.business_name)}&am=${Math.round(tot-paid)}&cu=INR&tn=${encodeURIComponent(q.number)}` : "";
+  return `
+  <section class="row noprint">
+    <a class="btn" href="#quotes">← Back</a><div class="sp"></div>
+    <button onclick="editQuote('${q.id}')">Edit</button>
+    <button class="primary" onclick="window.print()">⬇ PDF / Print</button>
+    <a class="btn" target="_blank" href="${waLink(q.phone, wa)}">💬 WhatsApp</a>
+  </section>
+  <div class="small mute noprint">To save a PDF: tap <b>PDF / Print</b>, then choose <b>Save as PDF</b> as the printer.</div>
+  ${inv?`<section class="card noprint"><div class="row"><h2 style="margin:0">Payments</h2><div class="sp"></div>${tot-paid>0.5?`<button class="sm primary" onclick="addPayment('${q.id}')">₹ Add payment</button>`:`<span class="ok small">✓ Fully paid</span>`}</div>
+    ${(q.payments||[]).length?(q.payments||[]).map((p,i)=>`<div class="row small" style="padding:6px 0;border-bottom:1px solid var(--line)"><span>${fdate(p.date)}</span><span class="mute">${esc(p.method||"")}</span><div class="sp"></div><b class="ok">${money(p.amount)}</b><button class="sm danger" onclick="delPayment('${q.id}',${i})">✕</button></div>`).join(""):`<div class="small mute" style="margin-top:6px">No payments yet.</div>`}</section>`:""}
+  <section class="doc">
+    <div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div>${LOGO_SVG}<h1>${esc(s.business_name)}</h1><div class="muted">${esc(s.tagline||"")}</div>
+        <div class="muted" style="margin-top:6px">${[s.address,s.phone,s.email].filter(Boolean).map(esc).join(" · ")}</div></div>
+      <div style="text-align:right"><div class="badge">${inv?"INVOICE":"QUOTATION"}</div>
+        <div style="margin-top:8px"><b>${esc(q.number)}</b></div><div class="muted">Date: ${fdate(q.date)}</div>
+        ${q.due_date?`<div class="muted">${inv?"Due":"Valid till"}: ${fdate(q.due_date)}</div>`:""}${q.quote_ref?`<div class="muted">Ref: ${esc(q.quote_ref)}</div>`:""}</div>
+    </div>
+    <div style="margin:22px 0 14px"><div class="muted">${inv?"Bill to":"Prepared for"}</div><div style="font-size:16px;font-weight:700">${esc(q.client||"")}</div>${q.phone?`<div class="muted">${esc(q.phone)}</div>`:""}</div>
+    <table><tr><th>#</th><th>Description</th><th class="n">Qty</th><th class="n">Rate</th><th class="n">Amount</th></tr>
+      ${(q.items||[]).map((i,k)=>`<tr><td>${k+1}</td><td>${esc(i.desc)}</td><td class="n">${esc(i.qty)}</td><td class="n">${money(i.rate)}</td><td class="n">${money(num(i.qty)*num(i.rate))}</td></tr>`).join("")}
+    </table>
+    <table style="width:auto;margin-left:auto;margin-top:10px" class="tot">
+      <tr><td class="muted">Subtotal</td><td class="n">${money(sub)}</td></tr>
+      ${num(q.discount)?`<tr><td class="muted">Discount</td><td class="n">-${money(q.discount)}</td></tr>`:""}
+      <tr><td class="big">Total</td><td class="n big">${money(tot)}</td></tr>
+      ${inv&&paid?`<tr><td class="muted">Paid</td><td class="n">${money(paid)}</td></tr><tr><td><b>Balance due</b></td><td class="n"><b>${money(tot-paid)}</b></td></tr>`:""}
+    </table>
+    ${s.upi_id&&inv?`<div style="margin-top:16px"><b>Pay by UPI:</b> ${esc(s.upi_id)} ${upiLink?`<a class="noprint" href="${upiLink}" style="margin-left:6px">Pay now</a>`:""}</div>`:""}
+    ${q.notes?`<div style="margin-top:16px;white-space:pre-wrap" class="muted">${esc(q.notes)}</div>`:""}
+    <div style="margin-top:28px;text-align:center" class="muted">Thank you for working with ${esc(s.business_name)} 🙏</div>
+  </section>`;
+}
+
+// ============================================================ PRINTS (Bambu)
+let pFilter = "all", pSearch = "";
+function vPrints(){
+  const b = H.bambu || {}, connected = !!sheetCfg().url;
+  const m = today().slice(0,7);
+  const month = H.prints.filter(p=>String(p.start||"").slice(0,7)===m && p.status==="Done");
+  const g = month.reduce((a,p)=>a+num(p.grams),0), h = month.reduce((a,p)=>a+num(p.seconds),0)/3600, cost = month.reduce((a,p)=>a+printCost(p).total,0);
+  const list = H.prints.filter(p=>(pFilter==="all"||p.status===pFilter) && (!pSearch || (p.title+" "+p.printer).toLowerCase().includes(pSearch))).slice(0,150);
+  const login = !connected ? connectBanner()
+    : !b.loggedIn ? `<section class="card"><h2>Connect Bambu Lab</h2>
+        <div class="small mute" style="margin-bottom:10px">Your print history syncs to your Google Sheet every hour, so no phone or PC app needs to stay running.</div>
+        <div class="grid2"><label>Bambu email<input id="bEmail" type="email" value="${esc(b.email||"")}"></label><label>Password<input id="bPass" type="password"></label></div>
+        <div id="bCodeRow" hidden class="grid2" style="margin-top:10px"><label id="bCodeMsg">Code<input id="bCode" inputmode="numeric"></label></div>
+        <div class="row" style="margin-top:10px"><div class="sp"></div><button class="primary" id="bGo" onclick="bambuLogin()">Log in</button></div>
+        <details style="margin-top:10px"><summary class="small mute">Login blocked? Paste a token instead</summary>
+          <div class="row" style="margin-top:8px"><input id="bTok" placeholder="Bambu access token"><button class="sm" onclick="bambuToken()">Save token</button></div></details></section>`
+    : `<section class="card"><div class="row"><h2 style="margin:0">Bambu Lab</h2><span class="small mute">${esc(b.email||"")}</span><div class="sp"></div>
+        <button class="sm" onclick="bambuSync(false)">⟳ Sync</button><button class="sm" onclick="bambuSync(true)">Full history</button><button class="sm danger" onclick="bambuLogout()">Log out</button></div>
+        <div class="small ${b.error?"bad":"mute"}" style="margin-top:6px">${b.error?esc(b.error):b.lastSync?"Last sync "+new Date(b.lastSync).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})+" · "+(H.prints.length)+" prints saved":"Not synced yet — tap Sync"}</div>
+        ${(H.devices||[]).length?`<div class="row" style="margin-top:10px">${H.devices.map(d=>`<span class="tag ${d.online?"Done":""}">${d.online?"●":"○"} ${esc(d.name||d.model)}${d.status&&d.online?" · "+esc(String(d.status).toLowerCase()):""}</span>`).join("")}</div>`:""}</section>`;
+  return `${login}
+  <section class="kpis">
+    <div class="kpi"><div class="s">Prints this month</div><div class="v">${month.length}</div></div>
+    <div class="kpi"><div class="s">Filament used</div><div class="v">${g>=1000?(g/1000).toFixed(2)+" kg":g.toFixed(0)+" g"}</div></div>
+    <div class="kpi"><div class="s">Print hours</div><div class="v">${h.toFixed(1)}</div></div>
+    <div class="kpi"><div class="s">Running cost</div><div class="v">${money(cost)}</div><div class="s">filament + power + wear</div></div>
+  </section>
+  <section class="row">
+    <div class="chips">${[["all","All"],["Done","Done"],["Printing","Printing"],["Failed","Failed"]].map(([k,l])=>`<span class="chip ${pFilter===k?"on":""}" onclick="pFilter='${k}';render()">${l}</span>`).join("")}</div>
+    <div class="sp"></div><input style="max-width:220px" placeholder="Search prints" value="${esc(pSearch)}" oninput="pSearch=this.value.toLowerCase();clearTimeout(window._ps);window._ps=setTimeout(()=>{render();const i=document.querySelector('main input[placeholder=&quot;Search prints&quot;]');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},250)">
+  </section>
+  <section class="list">${list.length ? list.map(p=>{ const c = printCost(p);
+    return `<div class="item printrow">
+      <div class="thumb" style="${p.cover?`background-image:url('${esc(p.cover)}')`:""}"></div>
+      <div style="min-width:0"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.title)}</div>
+        <div class="small mute">${fdate(p.start)} · ${esc(p.printer)} · ${num(p.grams).toFixed(0)} g · ${(num(p.seconds)/3600).toFixed(1)} h ${String(p.colors||"").split(" ").filter(Boolean).map(c=>`<span class="sw" style="background:${esc(c)}"></span>`).join(" ")}</div></div>
+      <div style="text-align:right"><span class="tag ${esc(p.status)}">${esc(p.status)}</span><div class="small mute" style="margin-top:4px">cost ${money(c.total)}</div><div class="small"><b>${money(c.priceGram)}</b> @₹${num(S().rate_per_gram)}/g</div></div>
+    </div>`}).join("") : `<div class="empty">${b.loggedIn?"No prints yet — tap Sync.":"Connect Bambu above to see your print history."}</div>`}</section>`;
+}
+async function bambuLogin(){
+  const email = $("#bEmail").value.trim(), code = $("#bCode").value.trim();
+  try {
+    $("#bGo").disabled = true;
+    const r = code ? await api({action:"bambuCode", email, code}) : await api({action:"bambuLogin", email, password:$("#bPass").value});
+    if(r.needCode){ $("#bCodeRow").hidden = false; $("#bCodeMsg").firstChild.textContent = r.msg + " "; $("#bGo").textContent = "Verify code"; toast(r.msg); }
+    else if(r.done){ toast("Bambu connected ✔ Syncing…"); await bambuSync(false); }
+    else toast(r.msg || "Login failed");
+  } catch(e){ toast(e.message); } finally { const g=$("#bGo"); if(g) g.disabled = false; }
+}
+async function bambuToken(){ try { await api({action:"bambuToken", email:$("#bEmail").value.trim(), token:$("#bTok").value.trim()}); toast("Saved ✔ Syncing…"); await bambuSync(false); } catch(e){ toast(e.message); } }
+async function bambuSync(full){
+  try { toast(full?"Loading full history… (can take a minute)":"Syncing prints…"); const r = await api({action:"bambuSync", full}); toast(r.ok?`Synced ✔ ${r.fetched||0} prints checked`:(r.msg||"Sync failed")); }
+  catch(e){ toast(e.message); }
+  await pull(true); render();
+}
+async function bambuLogout(){ if(!confirm("Log out of Bambu? Saved prints stay in your Sheet.")) return; try { await api({action:"bambuLogout"}); } catch(e){} await pull(true); }
+
+// ============================================================ SETTINGS
+function vSettings(){
+  const s = S(), c = sheetCfg();
+  const F = (k,l,t="text",extra="") => `<label>${l}<input data-set="${k}" type="${t}" value="${esc(s[k]??"")}" ${extra}></label>`;
+  return `
+  <section class="card"><h2>Google Sheet</h2>
+    <div class="small ${c.url?"ok":"bad"}">${c.url?"Connected ✔ — shared with Mayafx PM":"Not connected"}</div>
+    <div class="small mute" style="margin-top:6px">HQ uses the same Sheet as Mayafx PM. To change it, open <a href="#pm">📋 PM</a> → Settings.</div>
+  </section>
+  <section class="card"><h2>Business (shown on quotes & invoices)</h2><div class="grid2">
+    ${F("business_name","Business name")}${F("tagline","Tagline")}${F("phone","Phone","tel")}${F("email","Email","email")}${F("address","Address")}${F("upi_id","UPI ID (for payments)","text",'placeholder="name@okaxis"')}
+    ${F("invoice_due_days","Invoice due in (days)","number")}${F("scan_fee","3D scanning fee ₹","number")}
+    <label style="grid-column:1/-1">Default quote terms<textarea data-set="quote_terms">${esc(s.quote_terms||"")}</textarea></label>
+  </div></section>
+  <section class="card"><h2>3D print pricing</h2><div class="grid2">
+    ${F("rate_per_gram","Price per gram ₹ (museum rate)","number")}${F("filament_per_kg","Filament ₹ per kg","number")}${F("electricity_per_kwh","Electricity ₹ per unit","number")}
+    ${F("watts","Printer watts","number")}${F("wear_per_hour","Wear ₹ per print hour","number")}${F("margin_percent","Margin % (local clients)","number")}
+  </div></section>
+  <section class="card"><h2>Extra links (end of the tab bar)</h2>
+    <label>One per line: <b>Name | link</b><textarea id="qlinks" style="min-height:80px" placeholder="🎨 My App | https://...">${esc((s.quick_links||[]).map(l=>(l.name||"")+" | "+(l.url||"")).join("\n"))}</textarea></label>
+  </section>
+  <section class="row"><div class="sp"></div><button class="primary" id="saveSet">Save settings</button></section>
+  <section class="card"><h2>Appearance</h2><div class="chips"><span class="chip ${document.documentElement.dataset.theme!=="dark"?"on":""}" data-th="light">Light</span><span class="chip ${document.documentElement.dataset.theme==="dark"?"on":""}" data-th="dark">Dark</span></div></section>
+  <section class="card"><h2>Bring in your old HQ data</h2>
+    <div class="small mute">In the old Mayafx HQ (Termux / Windows app) tap <b>⚙ Settings → Download backup</b>, then pick that file here. Your quotes, invoices, business details and print history move into the Sheet.</div>
+    <div class="row" style="margin-top:8px"><label class="btn" style="display:inline-flex">⬆ Import old HQ backup<input type="file" accept=".json,application/json" style="display:none" id="impFile"></label>
+    <button id="expBtn">⬇ Download HQ backup</button></div>
+  </section>`;
+}
+function wireSettings(){
+  $("#saveSet").onclick = ()=>{
+    const b = Object.assign({}, H.settings);
+    document.querySelectorAll("[data-set]").forEach(el=>{ const k=el.dataset.set; b[k] = el.type==="number" ? num(el.value) : el.value.trim(); });
+    b.quick_links = $("#qlinks").value.split("\n").map(l=>{ const i=l.lastIndexOf("|"); if(i<0) return null; const name=l.slice(0,i).trim(), url=l.slice(i+1).trim(); return /^https?:\/\//.test(url) ? {name: name||url, url} : null; }).filter(Boolean);
+    H.settings = b; storeLS("hq_cache", H); enqueue({action:"saveHQSettings", settings:b}); render(); toast("Settings saved");
+  };
+  document.querySelectorAll("[data-th]").forEach(el=>el.onclick=()=>{ const c = sheetCfg(); c.theme = el.dataset.th; storeLS("mpm_cfg", c); document.documentElement.dataset.theme = c.theme; render(); });
+  $("#impFile").onchange = e=>importOld(e.target.files[0]);
+  $("#expBtn").onclick = ()=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([JSON.stringify({app:"mayafx-hq-web",made:new Date().toISOString(),hq:H},null,2)],{type:"application/json"})); a.download=`mayafx-hq-${today()}.json`; a.click(); };
+}
+async function importOld(f){
+  if(!f) return;
+  let b; try { b = JSON.parse(await f.text()); } catch(e){ toast("Could not read that file"); return; }
+  const files = b.files || {}, hub = files["hub.json"] || b.hq || {};
+  const quotes = (hub.quotes||[]).map(q=>Object.assign({}, q, { id: q.id || ((q.type==="quote"?"q-":"i-")+uid()), payments: q.payments||[] }));
+  const hist = files["history.json"] || {}, manual = files["manual.json"] || {};
+  const prints = Object.values(hist).concat(Object.values(manual)).map(p=>({ id:String(p.id), title:p.title, printer:p.printer, start:p.start, end:p.end, seconds:p.seconds, grams:p.grams, filament:p.filament, colors:(p.colors||[]).join?p.colors.join(" "):p.colors, status:p.status, cover:p.cover||"" }));
+  const settings = Object.assign({}, H.settings, hub.settings||{});
+  if(settings.quick_links) settings.quick_links = settings.quick_links.filter(l=>!/print-cost|daily-order/.test(l.url||""));
+  if(!confirm(`Import ${quotes.length} quotes/invoices, ${prints.length} prints and your business details?`)) return;
+  quotes.forEach(q=>{ q.total=quoteTotal(q); q.paid=paidFor(q); const i=H.quotes.findIndex(x=>x.id===q.id); if(i>=0) H.quotes[i]=q; else H.quotes.push(q); });
+  H.settings = settings; storeLS("hq_cache", H);
+  enqueue({action:"saveHQSettings", settings});
+  if(quotes.length) enqueue({action:"bulkQuotes", records: quotes.map(q=>Object.assign({}, q, {status:qStatus(q)}))});
+  if(prints.length) enqueue({action:"bulkPrints", records: prints});
+  H.prints = prints.concat(H.prints.filter(p=>!prints.some(x=>x.id===p.id)));
+  render(); toast("Imported ✔ Saving to your Sheet…");
+}
+
+// ============================================================ install + start
+let installEvt = null;
+window.addEventListener("beforeinstallprompt", e=>{ e.preventDefault(); installEvt = e; $("#installBtn").hidden = false; });
+$("#installBtn").onclick = async ()=>{ if(!installEvt) return; installEvt.prompt(); await installEvt.userChoice; installEvt=null; $("#installBtn").hidden = true; };
+window.addEventListener("appinstalled", ()=>{ $("#installBtn").hidden = true; toast("Installed ✔ Right-click its taskbar icon → Pin to taskbar"); });
+if("serviceWorker" in navigator && location.protocol==="https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
+$("#sync").onclick = ()=>pull();
+render(); syncLabel(); pull(true);
+setInterval(()=>{ if(document.visibilityState==="visible") pull(true); }, 5*60*1000);
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible") pull(true); });
+</script>
+</body>
+</html>
