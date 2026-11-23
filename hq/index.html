@@ -125,7 +125,7 @@ const DEFAULTS = {
   phone: "", email: "", address: "Bicholim, North Goa", upi_id: "",
   quote_terms: "50% advance to start. Balance on delivery. Quote valid for 15 days.", invoice_due_days: 7,
   rate_per_gram: 14, scan_fee: 600, filament_per_kg: 675, electricity_per_kwh: 8, watts: 100, wear_per_hour: 5, margin_percent: 60,
-  quick_links: []
+  quick_links: [], apps: null
 };
 // HQ uses the same Google Sheet connection as Mayafx PM (same website, so it is shared automatically)
 const sheetCfg = () => loadLS("mpm_cfg", {}) || {};
@@ -192,23 +192,41 @@ function printCost(p){
 }
 
 // ============================================================ router + tabs
-const TABS = [["pm","📋 PM"],["calc","🧮 Print Cost"],["quotes","🧾 Quotes & Invoices"],["prints","🖨 Prints"],["settings","⚙ Settings"]];
-const FRAMES = { pm: () => ORIGIN_APPS.pm, calc: () => ORIGIN_APPS.calc };
+// ---------- Apps: every app HQ opens. Add more any time in ⚙ Settings → Apps ----------
+// open: "inside" = shown as a tab inside HQ, "window" = opens in its own browser tab/window
+const DEFAULT_APPS = () => [
+  { id: "pm",   icon: "📋", name: "PM",         url: ORIGIN_APPS.pm,   open: "inside" },
+  { id: "calc", icon: "🧮", name: "Print Cost", url: ORIGIN_APPS.calc, open: "inside" }
+];
+function appsList(){
+  const s = H.settings || {};
+  if(Array.isArray(s.apps)) return s.apps.filter(a=>a && a.url);
+  // first run: built-in apps + any old quick links (old HQ) as window apps
+  const old = (s.quick_links||[]).filter(l=>l && l.url && !/print-cost|daily-order|Mayafx-PM/i.test(l.url))
+    .map(l=>({ id: "a-"+uid(), icon: "🔗", name: (l.name||l.url).replace(/^\W+\s*/,""), url: l.url, open: "window" }));
+  return DEFAULT_APPS().concat(old);
+}
+const NATIVE = [["quotes","🧾 Quotes & Invoices"],["prints","🖨 Prints"],["settings","⚙ Settings"]];
 function render(){
-  let [tab, arg] = (location.hash.slice(1) || loadLS("hq_tab","pm")).split("/");
-  if(!["pm","calc","quotes","prints","settings","doc"].includes(tab)) tab = "pm";
+  const apps = appsList(), inside = apps.filter(a=>a.open!=="window");
+  const valid = inside.map(a=>a.id).concat(["quotes","prints","settings","doc"]);
+  let [tab, arg] = (location.hash.slice(1) || loadLS("hq_tab", inside[0] ? inside[0].id : "quotes")).split("/");
+  if(!valid.includes(tab)) tab = inside[0] ? inside[0].id : "quotes";
   if(tab !== "doc") storeLS("hq_tab", tab);
-  const ql = (S().quick_links||[]).filter(l=>l && l.url).map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.name||l.url)} ↗</a>`).join("");
-  $("#tabs").innerHTML = TABS.map(([k,l])=>`<a href="#${k}" class="${k===tab||(tab==="doc"&&k==="quotes")?"on":""}">${l}</a>`).join("") + (ql ? `<span class="sep"></span>${ql}` : "");
+  const win = apps.filter(a=>a.open==="window").map(a=>`<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.icon||"🔗")} ${esc(a.name)} ↗</a>`).join("");
+  $("#tabs").innerHTML = inside.map(a=>`<a href="#${esc(a.id)}" class="${a.id===tab?"on":""}">${esc(a.icon||"🔗")} ${esc(a.name)}</a>`).join("")
+    + NATIVE.map(([k,l])=>`<a href="#${k}" class="${k===tab||(tab==="doc"&&k==="quotes")?"on":""}">${l}</a>`).join("")
+    + (win ? `<span class="sep"></span>${win}` : "");
   const on = $("#tabs a.on"); if(on) on.scrollIntoView({inline:"nearest",block:"nearest"});
   document.documentElement.style.setProperty("--toph", $("#top").offsetHeight + "px");
-  // embedded apps stay loaded in the background so switching is instant
-  Object.keys(FRAMES).forEach(k=>{
-    let f = document.getElementById("f-"+k);
-    if(k===tab && !f){ f = document.createElement("iframe"); f.id="f-"+k; f.className="frame"; f.src = FRAMES[k](); f.title = k; $("#frames").appendChild(f); }
-    if(f) f.hidden = k!==tab;
-  });
-  const isFrame = !!FRAMES[tab];
+  // apps shown inside HQ stay loaded in the background so switching is instant
+  const current = inside.find(a=>a.id===tab);
+  document.querySelectorAll("#frames iframe").forEach(f=>{ const a = inside.find(x=>"f-"+x.id===f.id); if(!a || f.dataset.src!==a.url) f.remove(); else f.hidden = f.id!=="f-"+tab; });
+  if(current && !document.getElementById("f-"+current.id)){
+    const f = document.createElement("iframe"); f.id = "f-"+current.id; f.className = "frame"; f.src = f.dataset.src = current.url; f.title = current.name;
+    f.setAttribute("allow", "clipboard-write; fullscreen"); $("#frames").appendChild(f);
+  }
+  const isFrame = !!current;
   $("#view").hidden = isFrame;
   if(!isFrame) $("#view").innerHTML = ({quotes:vQuotes, prints:vPrints, settings:vSettings, doc:vDoc})[tab](arg);
   if(tab==="settings") wireSettings();
@@ -470,8 +488,10 @@ function vSettings(){
     ${F("rate_per_gram","Price per gram ₹ (museum rate)","number")}${F("filament_per_kg","Filament ₹ per kg","number")}${F("electricity_per_kwh","Electricity ₹ per unit","number")}
     ${F("watts","Printer watts","number")}${F("wear_per_hour","Wear ₹ per print hour","number")}${F("margin_percent","Margin % (local clients)","number")}
   </div></section>
-  <section class="card"><h2>Extra links (end of the tab bar)</h2>
-    <label>One per line: <b>Name | link</b><textarea id="qlinks" style="min-height:80px" placeholder="🎨 My App | https://...">${esc((s.quick_links||[]).map(l=>(l.name||"")+" | "+(l.url||"")).join("\n"))}</textarea></label>
+  <section class="card"><div class="row" style="margin-bottom:6px"><h2 style="margin:0">Apps</h2><div class="sp"></div><button class="sm" id="appReset">Restore defaults</button></div>
+    <div class="small mute" style="margin-bottom:10px">Every app HQ opens. <b>Inside HQ</b> shows it as a tab here; <b>New window</b> opens it separately (use this for sites like Google or ClickUp that refuse to open inside other apps). Use ↑ ↓ to change the tab order.</div>
+    <div id="appRows" class="list"></div>
+    <div class="row" style="margin-top:10px"><button class="sm primary" id="appAdd">+ Add app</button></div>
   </section>
   <section class="row"><div class="sp"></div><button class="primary" id="saveSet">Save settings</button></section>
   <section class="card"><h2>Appearance</h2><div class="chips"><span class="chip ${document.documentElement.dataset.theme!=="dark"?"on":""}" data-th="light">Light</span><span class="chip ${document.documentElement.dataset.theme==="dark"?"on":""}" data-th="dark">Dark</span></div></section>
@@ -481,11 +501,39 @@ function vSettings(){
     <button id="expBtn">⬇ Download HQ backup</button></div>
   </section>`;
 }
+let appDraft = null;
+function drawAppRows(){
+  $("#appRows").innerHTML = appDraft.map((a,i)=>`<div class="item" style="padding:10px">
+    <div class="row"><input data-ai="${i}" data-k="icon" value="${esc(a.icon||"")}" style="width:56px;flex:none;text-align:center" maxlength="4">
+      <input data-ai="${i}" data-k="name" value="${esc(a.name||"")}" placeholder="App name" style="flex:1;min-width:120px">
+      <button class="sm" data-mv="${i}" data-d="-1" ${i?"":"disabled"}>↑</button><button class="sm" data-mv="${i}" data-d="1" ${i<appDraft.length-1?"":"disabled"}>↓</button>
+      <button class="sm danger" data-rm="${i}">✕</button></div>
+    <div class="row"><input data-ai="${i}" data-k="url" value="${esc(a.url||"")}" placeholder="https://…" style="flex:1;min-width:200px">
+      <select data-ai="${i}" data-k="open" style="width:150px;flex:none"><option value="inside" ${a.open!=="window"?"selected":""}>Inside HQ</option><option value="window" ${a.open==="window"?"selected":""}>New window</option></select></div>
+  </div>`).join("") || `<div class="empty small">No apps. Tap + Add app.</div>`;
+  document.querySelectorAll("[data-ai]").forEach(el=>el.oninput = el.onchange = ()=>{ appDraft[+el.dataset.ai][el.dataset.k] = el.value; });
+  document.querySelectorAll("[data-mv]").forEach(el=>el.onclick=()=>{ const i=+el.dataset.mv, j=i+(+el.dataset.d); [appDraft[i],appDraft[j]]=[appDraft[j],appDraft[i]]; drawAppRows(); });
+  document.querySelectorAll("[data-rm]").forEach(el=>el.onclick=()=>{ appDraft.splice(+el.dataset.rm,1); drawAppRows(); });
+}
+function readAppRows(){
+  const out = [];
+  for(const a of appDraft){
+    const url = String(a.url||"").trim(), name = String(a.name||"").trim();
+    if(!url && !name) continue;
+    if(!/^https?:\/\//.test(url)){ toast(`"${name||"App"}" needs a link starting with https://`); return null; }
+    out.push({ id: a.id || "a-"+uid(), icon: String(a.icon||"").trim() || "🔗", name: name || url, url, open: a.open==="window" ? "window" : "inside" });
+  }
+  return out;
+}
 function wireSettings(){
+  appDraft = JSON.parse(JSON.stringify(appsList())); drawAppRows();
+  $("#appAdd").onclick = ()=>{ appDraft.push({ id:"a-"+uid(), icon:"✨", name:"", url:"", open:"inside" }); drawAppRows(); const r=document.querySelectorAll('#appRows [data-k="name"]'); r[r.length-1].focus(); };
+  $("#appReset").onclick = ()=>{ if(!confirm("Put back PM and Print Cost and remove your added apps?")) return; appDraft = DEFAULT_APPS(); drawAppRows(); toast("Tap Save settings to keep this"); };
   $("#saveSet").onclick = ()=>{
     const b = Object.assign({}, H.settings);
     document.querySelectorAll("[data-set]").forEach(el=>{ const k=el.dataset.set; b[k] = el.type==="number" ? num(el.value) : el.value.trim(); });
-    b.quick_links = $("#qlinks").value.split("\n").map(l=>{ const i=l.lastIndexOf("|"); if(i<0) return null; const name=l.slice(0,i).trim(), url=l.slice(i+1).trim(); return /^https?:\/\//.test(url) ? {name: name||url, url} : null; }).filter(Boolean);
+    b.apps = readAppRows(); if(!b.apps) return;
+    b.quick_links = [];
     H.settings = b; storeLS("hq_cache", H); enqueue({action:"saveHQSettings", settings:b}); render(); toast("Settings saved");
   };
   document.querySelectorAll("[data-th]").forEach(el=>el.onclick=()=>{ const c = sheetCfg(); c.theme = el.dataset.th; storeLS("mpm_cfg", c); document.documentElement.dataset.theme = c.theme; render(); });
@@ -501,6 +549,7 @@ async function importOld(f){
   const prints = Object.values(hist).concat(Object.values(manual)).map(p=>({ id:String(p.id), title:p.title, printer:p.printer, start:p.start, end:p.end, seconds:p.seconds, grams:p.grams, filament:p.filament, colors:(p.colors||[]).join?p.colors.join(" "):p.colors, status:p.status, cover:p.cover||"" }));
   const settings = Object.assign({}, H.settings, hub.settings||{});
   if(settings.quick_links) settings.quick_links = settings.quick_links.filter(l=>!/print-cost|daily-order/.test(l.url||""));
+  if(!Array.isArray((H.settings||{}).apps)) delete settings.apps;
   if(!confirm(`Import ${quotes.length} quotes/invoices, ${prints.length} prints and your business details?`)) return;
   quotes.forEach(q=>{ q.total=quoteTotal(q); q.paid=paidFor(q); const i=H.quotes.findIndex(x=>x.id===q.id); if(i>=0) H.quotes[i]=q; else H.quotes.push(q); });
   H.settings = settings; storeLS("hq_cache", H);
