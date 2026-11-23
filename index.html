@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f3f3f5">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Mayafx PM</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='230 280 540 440'%3E%3Crect x='230' y='280' width='540' height='440' rx='90' fill='%231a1a1a'/%3E%3Cmask id='m'%3E%3Crect width='1000' height='1000' fill='%23fff'/%3E%3Ccircle cx='541' cy='500' r='54'/%3E%3C/mask%3E%3Cg mask='url(%23m)' fill='%23fff'%3E%3Cpolygon points='250,608 375,392 421,471 467,392 593,608 455,608 421,548 386,608'/%3E%3Cpolygon points='500,392 750,392 625,608'/%3E%3C/g%3E%3C/svg%3E">
 <style>
@@ -147,6 +149,7 @@ nav .badge{position:absolute;top:5px;left:calc(50% + 6px);background:var(--bad);
 <section class="tab on" id="t-today">
   <div class="banner" id="connectBanner" hidden><span>Data is only on this phone. Connect your Google Sheet to keep it safe and get reminders.</span><button data-go="t-settings">Connect</button></div>
   <div class="banner" id="calcBanner" hidden><span id="calcMsg"></span><button data-go="t-settings">Fix</button></div>
+  <div class="banner" id="floatBanner" hidden><span>Click anywhere to open the floating Today window.</span><button id="floatGo">Open</button></div>
   <div class="banner" id="notifBanner" hidden><span>Allow notifications to get reminders while the app is open.</span><button id="notifAllow">Allow</button></div>
   <div class="hello"><b id="hello">Hello Sai</b><span id="todayLbl"></span></div>
   <div class="stats" id="stats"></div>
@@ -200,6 +203,7 @@ nav .badge{position:absolute;top:5px;left:calc(50% + 6px);background:var(--bad);
   <div class="card">
     <h2 class="sec" style="margin-top:0">Reminders</h2>
     <p class="note" style="margin-top:0">Tasks with a date or reminder are added to your Google Calendar automatically (with a pop-up at the reminder time). Your Sheet also emails you a summary at 9 AM, 2 PM and 8 PM. While this app is open it shows notifications here too.</p>
+    <label style="display:flex;align-items:center;gap:10px;margin:4px 0 0;color:var(--ink);font-size:15px" id="autoFloatRow" hidden><input type="checkbox" id="cAutoFloat" style="width:20px;min-height:20px"> Open the floating window when the app starts (PC)</label>
     <div class="btns"><button class="btn" id="notifBtn">Allow notifications</button><button class="btn" id="exportBtn">Backup (JSON)</button></div>
   </div>
 </section>
@@ -578,6 +582,19 @@ async function popOut() {
 }
 if ('documentPictureInPicture' in window && matchMedia('(pointer:fine)').matches) $('popBtn').hidden = false;
 $('popBtn').onclick = popOut;
+// Installed app on PC: open the floating window on the first click (browsers need one click to allow it)
+const canFloat = 'documentPictureInPicture' in window && matchMedia('(pointer:fine)').matches;
+const installed = matchMedia('(display-mode: standalone)').matches;
+if (canFloat) $('autoFloatRow').hidden = false;
+$('cAutoFloat').checked = cfg.autoFloat !== false;
+$('cAutoFloat').onchange = () => { cfg.autoFloat = $('cAutoFloat').checked; store(LS.cfg, cfg); };
+if (canFloat && installed && cfg.autoFloat !== false) {
+  $('floatBanner').hidden = false;
+  const first = () => { $('floatBanner').hidden = true; popOut(); };
+  document.addEventListener('pointerdown', first, { once: true, capture: true });
+  document.addEventListener('keydown', first, { once: true, capture: true });
+}
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 setInterval(renderPip, 60 * 1000);
 
 // ---------- sheets (modals) ----------
