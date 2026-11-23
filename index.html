@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#fcfbf9">
+<meta name="theme-color" content="#f3f3f5">
 <title>Mayafx PM</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='230 280 540 440'%3E%3Crect x='230' y='280' width='540' height='440' rx='90' fill='%231a1a1a'/%3E%3Cmask id='m'%3E%3Crect width='1000' height='1000' fill='%23fff'/%3E%3Ccircle cx='541' cy='500' r='54'/%3E%3C/mask%3E%3Cg mask='url(%23m)' fill='%23fff'%3E%3Cpolygon points='250,608 375,392 421,471 467,392 593,608 455,608 421,548 386,608'/%3E%3Cpolygon points='500,392 750,392 625,608'/%3E%3C/g%3E%3C/svg%3E">
 <style>
 :root{
-  --bg:#fcfbf9; --card:#fff; --ink:#26221f; --muted:#857d76; --line:#efebe6;
-  --accent:#ec6a3f; --accent-ink:#fff; --good:#2a9a5c; --bad:#d4483a; --warn:#c98a12; --chip:#f5f2ee; --radius:16px;
-  --shadow:0 1px 2px rgba(60,40,20,.04),0 4px 14px rgba(60,40,20,.05);
+  --bg:#f3f3f5; --card:#fff; --ink:#1e1d22; --muted:#6c6a74; --line:#e3e2e8;
+  --accent:#6a5a96; --accent-ink:#fff; --good:#2f8a5a; --bad:#c2453c; --warn:#a8862a; --chip:#ebeaef; --radius:16px;
+  --shadow:0 1px 2px rgba(30,25,45,.04),0 4px 14px rgba(30,25,45,.05);
 }
-:root[data-theme=dark]{ --bg:#14110f; --card:#1f1b18; --ink:#f2ede7; --muted:#a39a91; --line:#332d28;
-  --accent:#ff6a3d; --accent-ink:#14110f; --good:#4cc47f; --bad:#ff6b5a; --warn:#f0b43c; --chip:#2a2521; --shadow:none; }
+:root[data-theme=dark]{ --bg:#141317; --card:#1d1c21; --ink:#ecebf0; --muted:#9e9ba8; --line:#2d2b33;
+  --accent:#a090cf; --accent-ink:#141317; --good:#5cbf8a; --bad:#e8786d; --warn:#d6b25a; --chip:#26242c; --shadow:none; }
 *{box-sizing:border-box}
 html,body{margin:0;color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
-body{background:radial-gradient(900px 420px at 100% -10%,rgba(236,106,63,.07),transparent 60%),var(--bg);background-attachment:fixed;min-height:100vh}
+body{background:radial-gradient(900px 420px at 100% -10%,rgba(106,90,150,.08),transparent 60%),var(--bg);background-attachment:fixed;min-height:100vh}
 .card,.list,.proj,.stat{box-shadow:var(--shadow);border-color:var(--line)}
 input[type=date],input[type=datetime-local]{cursor:pointer}
 header{position:sticky;top:0;z-index:5;padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;
@@ -25,6 +25,9 @@ header h1{display:flex;align-items:center;gap:9px;font-size:19px;margin:0;letter
 header h1 span{color:var(--accent)}
 .hlogo{width:52px;height:30px;flex:none;color:var(--bg);background:var(--ink);border-radius:8px;padding:5px 6px}
 #sync{font-size:12px;padding:5px 10px;border-radius:99px;background:var(--chip);color:var(--muted);border:0;cursor:pointer}
+#popBtn{font-size:12px;padding:5px 10px;border-radius:99px;background:var(--chip);color:var(--accent);border:0;cursor:pointer;font-weight:600}
+.pip{padding:10px 12px 14px}.pip h1{font-size:15px;margin:0 0 4px;display:flex;justify-content:space-between;align-items:center}
+.pip h2.sec{margin:12px 2px 6px}.pip .task{padding:9px 12px}.pip .task .ck{width:20px;height:20px}
 #sync.ok{color:var(--good)} #sync.warn{color:var(--accent)} #sync.err{color:var(--bad)}
 main{max-width:680px;margin:0 auto;padding:14px 16px 120px}
 .tab{display:none} .tab.on{display:block}
@@ -73,7 +76,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-
 .tag{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--chip);color:var(--muted);white-space:nowrap}
 .tag.over{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
 .tag.today{background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent)}
-.tag.calc{background:color-mix(in srgb,#e2562b 12%,transparent);color:#e2562b}
+.tag.calc{background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent)}
 .tag.good{background:color-mix(in srgb,var(--good) 14%,transparent);color:var(--good)}
 .tag.hi{color:var(--bad)}
 
@@ -106,7 +109,7 @@ nav button svg{width:22px;height:22px}
 nav button.on{color:var(--accent);font-weight:600}
 nav .badge{position:absolute;top:5px;left:calc(50% + 6px);background:var(--bad);color:#fff;font-size:10px;font-weight:700;border-radius:99px;padding:0 5px;line-height:16px}
 #fab{position:fixed;right:18px;bottom:calc(74px + env(safe-area-inset-bottom));z-index:6;width:58px;height:58px;border-radius:18px;border:0;background:var(--accent);color:var(--accent-ink);
-  box-shadow:0 8px 24px rgba(226,86,43,.35);cursor:pointer;display:grid;place-items:center}
+  box-shadow:0 8px 24px rgba(106,90,150,.32);cursor:pointer;display:grid;place-items:center}
 #fab svg{width:26px;height:26px}
 @media (min-width:760px){#fab{right:calc(50% - 340px + 18px)}}
 #toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:30;max-width:90vw;text-align:center}
@@ -136,7 +139,7 @@ nav .badge{position:absolute;top:5px;left:calc(50% + 6px);background:var(--bad);
 
 <header>
   <h1><svg viewBox="240 380 520 240" class="hlogo" aria-hidden="true"><defs><mask id="hm"><rect width="1000" height="1000" fill="#fff"/><circle cx="541" cy="500" r="54" fill="#000"/></mask></defs><g mask="url(#hm)" fill="currentColor"><polygon points="250,608 375,392 421,471 467,392 593,608 455,608 421,548 386,608"/><polygon points="500,392 750,392 625,608"/></g></svg>Mayafx <span>PM</span></h1>
-  <button id="sync" title="Sync now">Local only</button>
+  <div style="display:flex;gap:8px;align-items:center"><button id="popBtn" title="Float today's tasks on top of other windows" hidden>⧉ Float</button><button id="sync" title="Sync now">Local only</button></div>
 </header>
 
 <main>
@@ -217,8 +220,8 @@ nav .badge{position:absolute;top:5px;left:calc(50% + 6px);background:var(--bad);
 <script>
 // ---------- constants ----------
 const BRANCHES = [
-  { id: '3D Printing', c: '#e2562b' }, { id: 'CGI / VFX', c: '#8e5bd6' }, { id: 'Interactive', c: '#1f9e8f' },
-  { id: 'Game Dev', c: '#3a7bd5' }, { id: 'YouTube', c: '#d63a4a' }, { id: 'Business', c: '#b08a2e' }, { id: 'Other', c: '#8a8178' }
+  { id: '3D Printing', c: '#7a66b5' }, { id: 'CGI / VFX', c: '#3f78b8' }, { id: 'Interactive', c: '#2f9284' },
+  { id: 'Game Dev', c: '#b36a94' }, { id: 'YouTube', c: '#c4524c' }, { id: 'Business', c: '#9c8848' }, { id: 'Other', c: '#8b8894' }
 ];
 const P_STATUS = ['Lead', 'Active', 'On hold', 'Review', 'Done'];
 const T_STATUS = ['To do', 'Doing', 'Done'];
@@ -495,15 +498,35 @@ function renderProjects() {
 }
 
 // ---------- TASKS ----------
+// Task groups: 3D printing, CGI, daily (tasks with no project), other projects
+const TASK_CATS = [
+  { id: '3D Printing', label: '3D Printing', c: '#7a66b5' },
+  { id: 'CGI / VFX', label: 'CGI / VFX', c: '#3f78b8' },
+  { id: 'Daily', label: 'Daily', c: '#8b8894' },
+  { id: 'Other', label: 'Other projects', c: '#b3b0bb' }
+];
+function taskCat(t) {
+  const p = projectById(t.projectId);
+  if (!p) return 'Daily';
+  return p.branch === '3D Printing' || p.branch === 'CGI / VFX' ? p.branch : 'Other';
+}
 function renderTasks() {
   document.querySelectorAll('#taskSeg button').forEach(b => b.classList.toggle('on', b.dataset.s === ui.taskStatus));
-  branchChips($('taskBranchFilters'), ui.taskBranch);
   let list = allTasks().filter(t => t.status === ui.taskStatus);
-  if (ui.taskBranch) list = list.filter(t => { const p = projectById(t.projectId); return (p ? p.branch : 'Other') === ui.taskBranch; });
+  const counts = {}; list.forEach(t => { const c = taskCat(t); counts[c] = (counts[c] || 0) + 1; });
+  $('taskBranchFilters').innerHTML = `<button class="fchip ${ui.taskBranch ? '' : 'on'}" data-br="">All · ${list.length}</button>` +
+    TASK_CATS.map(c => `<button class="fchip ${ui.taskBranch === c.id ? 'on' : ''}" data-br="${c.id}"><span class="dot" style="background:${c.c}"></span>${c.label}${counts[c.id] ? ' · ' + counts[c.id] : ''}</button>`).join('');
+  if (ui.taskBranch) list = list.filter(t => taskCat(t) === ui.taskBranch);
   list.sort(ui.taskStatus === 'Done' ? (a, b) => String(b.doneAt || '').localeCompare(String(a.doneAt || '')) : taskSort);
   if (ui.taskStatus === 'Done') list = list.slice(0, 60);
-  $('taskList').innerHTML = list.length ? `<div class="list">${list.map(t => taskRow(t)).join('')}</div>`
-    : `<div class="card empty">${ui.taskStatus === 'Done' ? 'Nothing finished yet.' : 'No tasks here.'}</div>`;
+  if (!list.length) { $('taskList').innerHTML = `<div class="card empty">${ui.taskStatus === 'Done' ? 'Nothing finished yet.' : 'No tasks here.'}</div>`; return; }
+  const cats = ui.taskBranch ? TASK_CATS.filter(c => c.id === ui.taskBranch) : TASK_CATS;
+  $('taskList').innerHTML = cats.map(c => {
+    const g = list.filter(t => taskCat(t) === c.id);
+    if (!g.length) return '';
+    return `<h2 class="sec"><span style="display:flex;align-items:center;gap:7px"><span class="dot" style="background:${c.c}"></span>${c.label}</span><span class="n">${g.length}</span></h2>
+      <div class="list">${g.map(t => taskRow(t, { noProject: c.id === 'Daily' })).join('')}</div>`;
+  }).join('');
 }
 
 // ---------- SETTINGS ----------
@@ -518,7 +541,44 @@ function renderSettings() {
   $('notifBtn').textContent = !('Notification' in window) ? 'Notifications not supported' : Notification.permission === 'granted' ? 'Notifications on ✔' : 'Allow notifications';
 }
 
-function renderAll() { renderToday(); renderProjects(); renderTasks(); renderSettings(); }
+function renderAll() { renderToday(); renderProjects(); renderTasks(); renderSettings(); renderPip(); }
+
+// ---------- floating always-on-top window (Chrome / Edge on PC) ----------
+let pipWin = null;
+function renderPip() {
+  if (!pipWin) return;
+  const t = today(), open = allTasks().filter(x => x.status !== 'Done');
+  const man = open.filter(x => !x.auto);
+  const groups = [
+    ['Overdue', man.filter(x => x.dueDate && x.dueDate < t), 'bad'],
+    ['Today', man.filter(x => x.dueDate === t), ''],
+    ['In progress', man.filter(x => x.status === 'Doing' && !(x.dueDate && x.dueDate <= t)), ''],
+    ['Print queue', open.filter(x => x.auto === 'print'), ''],
+    ['Collect payment', open.filter(x => x.auto === 'pay'), '']
+  ];
+  const body = groups.map(([n, l, c]) => section(n, l.sort(taskSort), { cls: c })).join('');
+  pipWin.document.documentElement.dataset.theme = cfg.theme;
+  pipWin.document.body.innerHTML = `<div class="pip"><h1><span>Mayafx · Today</span><span class="tag">${new Date().toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })}</span></h1>
+    ${body || '<div class="empty">All clear for today ✔</div>'}</div>`;
+}
+async function popOut() {
+  if (pipWin) { pipWin.focus(); return; }
+  try {
+    pipWin = await documentPictureInPicture.requestWindow({ width: 360, height: 520 });
+    pipWin.document.head.appendChild(document.querySelector('style').cloneNode(true));
+    pipWin.document.title = 'Mayafx · Today';
+    pipWin.document.addEventListener('click', e => {
+      const ck = e.target.closest('[data-ck]'), row = e.target.closest('[data-task]');
+      if (ck) { toggleTask(ck.dataset.ck); return; }
+      if (row) { window.focus(); const tk = allTasks().find(x => x.id === row.dataset.task); if (tk) tk.auto ? projectDetail(tk.projectId) : taskForm(tk.id); }
+    });
+    pipWin.addEventListener('pagehide', () => { pipWin = null; });
+    renderPip();
+  } catch (e) { pipWin = null; toast('Floating window not supported in this browser'); }
+}
+if ('documentPictureInPicture' in window && matchMedia('(pointer:fine)').matches) $('popBtn').hidden = false;
+$('popBtn').onclick = popOut;
+setInterval(renderPip, 60 * 1000);
 
 // ---------- sheets (modals) ----------
 function openSheet(html) { $('sheetBody').innerHTML = html; $('sheet').classList.add('on'); document.body.style.overflow = 'hidden'; }
@@ -593,7 +653,7 @@ function taskForm(id, projectId) {
     .sort((a, b) => a.branch.localeCompare(b.branch) || a.name.localeCompare(b.name));
   openSheet(`<div class="shead"><h3>${id ? 'Edit task' : 'New task'}</h3><button class="x" data-close>×</button></div>
     <label>Task</label><input id="fTitle" value="${esc(t.title || '')}" placeholder="e.g. Send draft render to client">
-    <label>Project</label><select id="fProj"><option value="">— No project —</option>${ps.map(p => `<option value="${esc(p.id)}" ${p.id === t.projectId ? 'selected' : ''}>${esc(p.branch)} · ${esc(p.name)}</option>`).join('')}</select>
+    <label>Project</label><select id="fProj"><option value="">Daily task (no project)</option>${ps.map(p => `<option value="${esc(p.id)}" ${p.id === t.projectId ? 'selected' : ''}>${esc(p.branch)} · ${esc(p.name)}</option>`).join('')}</select>
     <div class="row"><div><label>Status</label><select id="fStatus">${opts(T_STATUS, t.status)}</select></div>
       <div><label>Priority</label><select id="fPrio">${opts(PRIOS, t.priority)}</select></div></div>
     <label>Due date</label><input type="date" id="fDue" value="${esc(t.dueDate || '')}">

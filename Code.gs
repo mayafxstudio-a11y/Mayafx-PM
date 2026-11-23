@@ -144,7 +144,7 @@ function syncEvent_(kind, rec, oldId) {
     ev = cal.createAllDayEvent('🎯 Deadline: ' + rec.name, day(rec.dueDate),
       { description: [rec.client, rec.branch, rec.notes].filter(String).join(' · ') + '\n\nFrom Mayafx PM' });
   }
-  if (ev) ev.setColor(kind === 'Tasks' ? CalendarApp.EventColor.ORANGE : CalendarApp.EventColor.RED);
+  if (ev) ev.setColor(kind === 'Tasks' ? CalendarApp.EventColor.MAUVE : CalendarApp.EventColor.RED);
   return ev ? ev.getId() : '';
 }
 
