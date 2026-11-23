@@ -27,7 +27,7 @@ header h1{display:flex;align-items:center;gap:9px;font-size:19px;margin:0;letter
 header h1 span{color:var(--accent)}
 .hlogo{width:52px;height:30px;flex:none;color:var(--bg);background:var(--ink);border-radius:8px;padding:5px 6px}
 #sync{font-size:12px;padding:5px 10px;border-radius:99px;background:var(--chip);color:var(--muted);border:0;cursor:pointer}
-#popBtn{font-size:12px;padding:5px 10px;border-radius:99px;background:var(--chip);color:var(--accent);border:0;cursor:pointer;font-weight:600}
+#installBtn,#popBtn{font-size:12px;padding:5px 10px;border-radius:99px;background:var(--chip);color:var(--accent);border:0;cursor:pointer;font-weight:600}
 .pip{padding:10px 12px 14px}.pip h1{font-size:15px;margin:0 0 4px;display:flex;justify-content:space-between;align-items:center}
 .pip h2.sec{margin:12px 2px 6px}.pip .task{padding:9px 12px}.pip .task .ck{width:20px;height:20px}
 #sync.ok{color:var(--good)} #sync.warn{color:var(--accent)} #sync.err{color:var(--bad)}
@@ -141,7 +141,7 @@ nav .badge{position:absolute;top:5px;left:calc(50% + 6px);background:var(--bad);
 
 <header>
   <h1><svg viewBox="240 380 520 240" class="hlogo" aria-hidden="true"><defs><mask id="hm"><rect width="1000" height="1000" fill="#fff"/><circle cx="541" cy="500" r="54" fill="#000"/></mask></defs><g mask="url(#hm)" fill="currentColor"><polygon points="250,608 375,392 421,471 467,392 593,608 455,608 421,548 386,608"/><polygon points="500,392 750,392 625,608"/></g></svg>Mayafx <span>PM</span></h1>
-  <div style="display:flex;gap:8px;align-items:center"><button id="popBtn" title="Float today's tasks on top of other windows" hidden>⧉ Float</button><button id="sync" title="Sync now">Local only</button></div>
+  <div style="display:flex;gap:8px;align-items:center"><button id="installBtn" class="hbtn" title="Install as an app" hidden>⬇ Install</button><button id="popBtn" title="Float today's tasks on top of other windows" hidden>⧉ Float</button><button id="sync" title="Sync now">Local only</button></div>
 </header>
 
 <main>
@@ -594,6 +594,10 @@ if (canFloat && installed && cfg.autoFloat !== false) {
   document.addEventListener('pointerdown', first, { once: true, capture: true });
   document.addEventListener('keydown', first, { once: true, capture: true });
 }
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; $('installBtn').hidden = false; });
+$('installBtn').onclick = async () => { if (!installEvt) return; installEvt.prompt(); await installEvt.userChoice; installEvt = null; $('installBtn').hidden = true; };
+window.addEventListener('appinstalled', () => { $('installBtn').hidden = true; toast('Installed ✔ Right-click its taskbar icon → Pin to taskbar'); });
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 setInterval(renderPip, 60 * 1000);
 
