@@ -1,0 +1,68 @@
+{
+  "name": "HQ Tool · TEMPLATE (duplicate me)",
+  "nodes": [
+    {
+      "id": "9693e0e6-9e5a-42c3-a2be-a463e5d69568",
+      "name": "About",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        40
+      ],
+      "parameters": {
+        "content": "## Describe the tool here (the AI reads this)\nOne line on WHEN the AI should use it.\ndata: {\"field\": \"what to send\"}\n\nSteps: duplicate → rename 'HQ Tool · …' → change webhook path → add your nodes → tag 'hq' → Activate.",
+        "width": 420,
+        "height": 240
+      }
+    },
+    {
+      "id": "148bcf4b-f0e4-4f0d-a949-1ca2e939eb48",
+      "name": "HQ calls me",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        320
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hq-my-tool",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "webhookId": "a9f77c19-0bc9-4bb2-b55c-7edb8a33e670"
+    },
+    {
+      "id": "59d93e9e-e1ad-4943-820f-b53a6d72ee76",
+      "name": "Your steps here",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        260,
+        320
+      ],
+      "parameters": {}
+    }
+  ],
+  "connections": {
+    "HQ calls me": {
+      "main": [
+        [
+          {
+            "node": "Your steps here",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Kolkata"
+  },
+  "tags": [],
+  "pinData": {}
+}

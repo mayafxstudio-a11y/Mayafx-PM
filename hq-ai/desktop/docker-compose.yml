@@ -1,0 +1,61 @@
+# Mayafx HQ — DESKTOP (leave this PC on). 3 parts: AI · n8n · (HQ app is on GitHub Pages)
+services:
+  hq-ai:                         # the centre: chat, summaries, reminders, Telegram, n8n tools
+    image: python:3.12-slim
+    container_name: mayafx-hq-ai
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      - TZ=Asia/Kolkata
+      - PYTHONUNBUFFERED=1
+      - DESKTOP_OLLAMA_URL=http://ollama:11434
+      - N8N_URL=http://n8n:5678
+    volumes:
+      - ../ai/server.py:/app/server.py:ro
+    command: ["python", "/app/server.py"]
+    ports:
+      - "8787:8787"
+
+  n8n:                           # reminders, schedules, automations
+    image: n8nio/n8n:latest
+    container_name: mayafx-n8n
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      - GENERIC_TIMEZONE=Asia/Kolkata
+      - TZ=Asia/Kolkata
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - N8N_SECURE_COOKIE=false
+      - N8N_DIAGNOSTICS_ENABLED=false
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ../n8n-workflows:/workflows:ro
+
+  ollama:                        # backup AI brain (laptop is used first when it's on)
+    image: ollama/ollama:latest
+    container_name: mayafx-ollama
+    restart: unless-stopped
+    volumes:
+      - ollama_models:/root/.ollama
+      - ../shared:/hq:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  tunnel:                        # https link for HQ on phone anywhere (Cloudflare Tunnel)
+    image: cloudflare/cloudflared:latest
+    container_name: mayafx-tunnel
+    restart: unless-stopped
+    command: ["tunnel", "--no-autoupdate", "run"]
+    env_file: ../.env            # needs TUNNEL_TOKEN
+    profiles: ["tunnel"]
+
+volumes:
+  n8n_data:
+  ollama_models:

@@ -1,0 +1,40 @@
+# Mayafx HQ — LAPTOP AI (faster brain + chat page at http://localhost:3000)
+# When the laptop is on, n8n on the desktop uses this AI first.
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: mayafx-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"          # open on your Wi-Fi so the desktop can reach it
+    volumes:
+      - ollama_models:/root/.ollama
+      - ../shared:/hq:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: mayafx-webui
+    restart: unless-stopped
+    depends_on: [ollama]
+    ports:
+      - "3000:8080"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - WEBUI_NAME=Mayafx HQ
+      - RAG_EMBEDDING_ENGINE=ollama
+      - RAG_EMBEDDING_MODEL=nomic-embed-text
+      - ENABLE_OPENAI_API=false
+      - ANONYMIZED_TELEMETRY=false
+    volumes:
+      - webui_data:/app/backend/data
+
+volumes:
+  ollama_models:
+  webui_data:
