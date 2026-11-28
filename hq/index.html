@@ -195,8 +195,8 @@ function printCost(p){
 // ---------- Apps: every app HQ opens. Add more any time in ⚙ Settings → Apps ----------
 // open: "inside" = shown as a tab inside HQ, "window" = opens in its own browser tab/window
 const DEFAULT_APPS = () => [
-  { id: "pm",   icon: "📋", name: "PM",         url: ORIGIN_APPS.pm,   open: "inside" },
-  { id: "calc", icon: "🧮", name: "Print Cost", url: ORIGIN_APPS.calc, open: "inside" }
+  { id: "pm",   icon: "📋", name: "PM",         url: ORIGIN_APPS.pm,   open: "inside", about: "Projects and to-dos for every branch. To-dos with 'Remind me at' become reminders." },
+  { id: "calc", icon: "🧮", name: "Print Cost", url: ORIGIN_APPS.calc, open: "inside", about: "3D print jobs: grams, hours, selling price, job status and payment." }
 ];
 function appsList(){
   const s = H.settings || {};
@@ -209,12 +209,12 @@ function appsList(){
 const NATIVE = [["quotes","🧾 Quotes & Invoices"],["prints","🖨 Prints"],["settings","⚙ Settings"]];
 function render(){
   const apps = appsList(), inside = apps.filter(a=>a.open!=="window");
-  const valid = inside.map(a=>a.id).concat(["quotes","prints","settings","doc"]);
-  let [tab, arg] = (location.hash.slice(1) || loadLS("hq_tab", inside[0] ? inside[0].id : "quotes")).split("/");
+  const valid = inside.map(a=>a.id).concat(["ai","quotes","prints","settings","doc"]);
+  let [tab, arg] = (location.hash.slice(1) || loadLS("hq_tab", "ai")).split("/");
   if(!valid.includes(tab)) tab = inside[0] ? inside[0].id : "quotes";
   if(tab !== "doc") storeLS("hq_tab", tab);
   const win = apps.filter(a=>a.open==="window").map(a=>`<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.icon||"🔗")} ${esc(a.name)} ↗</a>`).join("");
-  $("#tabs").innerHTML = inside.map(a=>`<a href="#${esc(a.id)}" class="${a.id===tab?"on":""}">${esc(a.icon||"🔗")} ${esc(a.name)}</a>`).join("")
+  $("#tabs").innerHTML = `<a href="#ai" class="${tab==="ai"?"on":""}">🤖 AI</a>` + inside.map(a=>`<a href="#${esc(a.id)}" class="${a.id===tab?"on":""}">${esc(a.icon||"🔗")} ${esc(a.name)}</a>`).join("")
     + NATIVE.map(([k,l])=>`<a href="#${k}" class="${k===tab||(tab==="doc"&&k==="quotes")?"on":""}">${l}</a>`).join("")
     + (win ? `<span class="sep"></span>${win}` : "");
   const on = $("#tabs a.on"); if(on) on.scrollIntoView({inline:"nearest",block:"nearest"});
@@ -228,11 +228,49 @@ function render(){
   }
   const isFrame = !!current;
   $("#view").hidden = isFrame;
-  if(!isFrame) $("#view").innerHTML = ({quotes:vQuotes, prints:vPrints, settings:vSettings, doc:vDoc})[tab](arg);
+  if(!isFrame) $("#view").innerHTML = ({ai:vAI, quotes:vQuotes, prints:vPrints, settings:vSettings, doc:vDoc})[tab](arg);
   if(tab==="settings") wireSettings();
+  if(tab==="ai") wireAI();
 }
 window.addEventListener("hashchange", render);
 window.addEventListener("resize", ()=>document.documentElement.style.setProperty("--toph", $("#top").offsetHeight + "px"));
+
+// ============================================================ HQ AI (summary + chat)
+const aiCfg = () => loadLS("hq_ai", {}) || {};
+let aiChat = loadLS("hq_ai_chat", []);
+async function aiApi(path, body){
+  const c = aiCfg(); if(!c.url) throw new Error("Add your AI server link in ⚙ Settings → HQ AI");
+  const r = await fetch(c.url + path, { method:"POST", headers:{ "Content-Type":"application/json", "X-HQ-Key": sheetCfg().key || "" }, body: JSON.stringify(body||{}) });
+  const d = await r.json(); if(!d.ok) throw new Error(d.error || "AI error"); return d;
+}
+const aiFmt = t => esc(t).replace(/\n/g,"<br>");
+function vAI(){
+  const c = aiCfg(), sum = loadLS("hq_ai_sum", null);
+  return `
+  ${c.url ? "" : `<div class="banner noprint"><span>Connect your HQ AI server once in <b>⚙ Settings → HQ AI</b>.</span><a class="btn sm" href="#settings">Settings</a></div>`}
+  <section class="card"><div class="row"><h2 style="margin:0">🏠 Summary</h2><span class="small mute">${sum ? esc(new Date(sum.at).toLocaleString("en-IN",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"short"})) : ""}</span><div class="sp"></div><button class="sm" id="aiSumBtn">↻ Refresh</button></div>
+    <div id="aiSum" class="small" style="margin-top:8px;line-height:1.55">${sum ? aiFmt(sum.text) : '<span class="mute">Tap Refresh for today\'s summary.</span>'}</div></section>
+  <section class="card"><div class="row"><h2 style="margin:0">💬 Ask HQ</h2><div class="sp"></div><button class="sm" id="aiClear">Clear</button></div>
+    <div id="aiLog" style="max-height:52vh;overflow:auto;margin:8px 0">${aiChat.map(m=>`<div class="item" style="padding:8px 10px;${m.role==="user"?"background:var(--line);":""}"><b class="small">${m.role==="user"?"You":"🤖 HQ"}</b><div class="small" style="line-height:1.5">${aiFmt(m.text)}</div></div>`).join("") || `<div class="small mute">Try: “what's pending today?”, “remind me tomorrow 10am to call Shankar”, “who owes me money?”, /today, /todo, /tools</div>`}</div>
+    <div class="row"><input id="aiIn" placeholder="Ask or tell HQ…" style="flex:1;min-width:180px" autocomplete="off"><button class="primary" id="aiSend">Send</button></div>
+    <div class="chips" style="margin-top:8px">${["/today","Who owes me money?","What should I do now?","/tools"].map(q=>`<span class="chip" data-q="${esc(q)}">${esc(q)}</span>`).join("")}</div>
+  </section>`;
+}
+function wireAI(){
+  const log = $("#aiLog"); if(log) log.scrollTop = log.scrollHeight;
+  $("#aiSumBtn").onclick = async ()=>{ $("#aiSum").innerHTML = '<span class="mute">Thinking…</span>';
+    try { const d = await aiApi("/api/summary", {slot:"home"}); storeLS("hq_ai_sum", {text:d.text, at:Date.now()}); render(); } catch(e){ $("#aiSum").textContent = e.message; } };
+  $("#aiClear").onclick = ()=>{ aiChat = []; storeLS("hq_ai_chat", aiChat); render(); };
+  const send = async (text)=>{ text = (text||$("#aiIn").value).trim(); if(!text) return;
+    aiChat.push({role:"user", text}); aiChat.push({role:"ai", text:"Thinking…"}); render();
+    try { const d = await aiApi("/api/chat", {message:text, history: aiChat.slice(-8,-2)}); aiChat[aiChat.length-1].text = d.reply; }
+    catch(e){ aiChat[aiChat.length-1].text = "⚠ " + e.message; }
+    aiChat = aiChat.slice(-30); storeLS("hq_ai_chat", aiChat); render(); };
+  $("#aiSend").onclick = ()=>send();
+  $("#aiIn").onkeydown = e=>{ if(e.key==="Enter") send(); };
+  document.querySelectorAll("[data-q]").forEach(el=>el.onclick=()=>send(el.dataset.q));
+  if(!loadLS("hq_ai_sum", null) && aiCfg().url) $("#aiSumBtn").click();
+}
 
 // ============================================================ QUOTES / INVOICES
 let qFilter = "all";
@@ -479,6 +517,10 @@ function vSettings(){
     <div class="small ${c.url?"ok":"bad"}">${c.url?"Connected ✔ — shared with Mayafx PM":"Not connected"}</div>
     <div class="small mute" style="margin-top:6px">HQ uses the same Sheet as Mayafx PM. To change it, open <a href="#pm">📋 PM</a> → Settings.</div>
   </section>
+  <section class="card"><h2>🤖 HQ AI</h2>
+    <div class="small mute">Your own AI server (desktop). Use the https link from Cloudflare Tunnel so it works on phone and PC. It uses the same key as your Sheet.</div>
+    <div class="row" style="margin-top:8px"><input id="aiUrl" value="${esc(aiCfg().url||"")}" placeholder="https://hq-ai.yourdomain.com" style="flex:1;min-width:220px"><button class="sm" id="aiTest">Save & test</button></div>
+  </section>
   <section class="card"><h2>Business (shown on quotes & invoices)</h2><div class="grid2">
     ${F("business_name","Business name")}${F("tagline","Tagline")}${F("phone","Phone","tel")}${F("email","Email","email")}${F("address","Address")}${F("upi_id","UPI ID (for payments)","text",'placeholder="name@okaxis"')}
     ${F("invoice_due_days","Invoice due in (days)","number")}${F("scan_fee","3D scanning fee ₹","number")}
@@ -510,6 +552,8 @@ function drawAppRows(){
       <button class="sm danger" data-rm="${i}">✕</button></div>
     <div class="row"><input data-ai="${i}" data-k="url" value="${esc(a.url||"")}" placeholder="https://…" style="flex:1;min-width:200px">
       <select data-ai="${i}" data-k="open" style="width:150px;flex:none"><option value="inside" ${a.open!=="window"?"selected":""}>Inside HQ</option><option value="window" ${a.open==="window"?"selected":""}>New window</option></select></div>
+    <div class="row"><input data-ai="${i}" data-k="about" value="${esc(a.about||"")}" placeholder="For the AI: what this app does / what data it has" style="flex:2;min-width:200px">
+      <input data-ai="${i}" data-k="data" value="${esc(a.data||"")}" placeholder="Optional data URL (Apps Script /exec)" style="flex:1;min-width:160px"></div>
   </div>`).join("") || `<div class="empty small">No apps. Tap + Add app.</div>`;
   document.querySelectorAll("[data-ai]").forEach(el=>el.oninput = el.onchange = ()=>{ appDraft[+el.dataset.ai][el.dataset.k] = el.value; });
   document.querySelectorAll("[data-mv]").forEach(el=>el.onclick=()=>{ const i=+el.dataset.mv, j=i+(+el.dataset.d); [appDraft[i],appDraft[j]]=[appDraft[j],appDraft[i]]; drawAppRows(); });
@@ -521,11 +565,13 @@ function readAppRows(){
     const url = String(a.url||"").trim(), name = String(a.name||"").trim();
     if(!url && !name) continue;
     if(!/^https?:\/\//.test(url)){ toast(`"${name||"App"}" needs a link starting with https://`); return null; }
-    out.push({ id: a.id || "a-"+uid(), icon: String(a.icon||"").trim() || "🔗", name: name || url, url, open: a.open==="window" ? "window" : "inside" });
+    out.push({ id: a.id || "a-"+uid(), icon: String(a.icon||"").trim() || "🔗", name: name || url, url, open: a.open==="window" ? "window" : "inside", about: String(a.about||"").trim(), data: String(a.data||"").trim() });
   }
   return out;
 }
 function wireSettings(){
+  $("#aiTest").onclick = async ()=>{ const c = aiCfg(); c.url = $("#aiUrl").value.trim().replace(/\/$/,""); storeLS("hq_ai", c);
+    try { const r = await fetch(c.url+"/api/health"); const d = await r.json(); toast(d.ok ? `AI connected ✔ · ${d.n8n_tools} n8n tools` : "AI server answered with an error"); } catch(e){ toast("Can't reach the AI server: "+e.message); } };
   appDraft = JSON.parse(JSON.stringify(appsList())); drawAppRows();
   $("#appAdd").onclick = ()=>{ appDraft.push({ id:"a-"+uid(), icon:"✨", name:"", url:"", open:"inside" }); drawAppRows(); const r=document.querySelectorAll('#appRows [data-k="name"]'); r[r.length-1].focus(); };
   $("#appReset").onclick = ()=>{ if(!confirm("Put back PM and Print Cost and remove your added apps?")) return; appDraft = DEFAULT_APPS(); drawAppRows(); toast("Tap Save settings to keep this"); };

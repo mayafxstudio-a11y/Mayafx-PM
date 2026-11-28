@@ -1,0 +1,81 @@
+{
+  "name": "HQ Tool · Send Telegram",
+  "nodes": [
+    {
+      "id": "10ed0431-1fae-49e2-983e-8c3f0a73b135",
+      "name": "About",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        60
+      ],
+      "parameters": {
+        "content": "## Send a Telegram message to Sai\nUse when Sai asks to be pinged, notified or sent a note on his phone.\ndata: {\"text\": \"message\"}",
+        "width": 380,
+        "height": 200
+      }
+    },
+    {
+      "id": "8069ada9-d56a-40a8-ac74-33837c159bfe",
+      "name": "HQ calls me",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        320
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hq-send-telegram",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "webhookId": "b699f505-e96d-4dd9-bb79-aec0ea5212a2"
+    },
+    {
+      "id": "291f9af4-c43a-480d-9909-8326def65fda",
+      "name": "Send to Telegram",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        320
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $env.TELEGRAM_CHAT_ID, text: $json.body.text }) }}",
+        "options": {
+          "timeout": 300000
+        }
+      }
+    }
+  ],
+  "connections": {
+    "HQ calls me": {
+      "main": [
+        [
+          {
+            "node": "Send to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Kolkata"
+  },
+  "tags": [
+    {
+      "name": "hq"
+    }
+  ],
+  "pinData": {}
+}
